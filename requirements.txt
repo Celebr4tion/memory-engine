@@ -5,6 +5,7 @@ aiogremlin
 # Vector database
 faiss-cpu
 hnswlib
+pymilvus
 
 # Machine Learning / LLM
 numpy
