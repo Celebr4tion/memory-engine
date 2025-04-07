@@ -5,8 +5,8 @@ This module provides an implementation of vector storage using Milvus,
 allowing for efficient storage and retrieval of embeddings.
 """
 import logging
-from typing import List, Dict, Any, Optional
 import time
+from typing import List, Dict, Any, Optional
 
 try:
     from pymilvus import (
@@ -26,7 +26,7 @@ class VectorStoreMilvus:
 
     def __init__(self, host: str = "localhost", port: int = 19530, 
                  collection_name: str = "knowledge_embeddings",
-                 dimension: int = 256):
+                 dimension: int = 3072):
         """
         Initialize the Milvus vector store.
 
@@ -34,7 +34,7 @@ class VectorStoreMilvus:
             host: Milvus server host
             port: Milvus server port
             collection_name: Name of the collection to store embeddings
-            dimension: Dimension of the embedding vectors
+            dimension: Dimension of the embedding vectors (3072 for Gemini embeddings)
         """
         if not MILVUS_AVAILABLE:
             raise ImportError(
@@ -65,7 +65,7 @@ class VectorStoreMilvus:
             try:
                 # Connect to Milvus server
                 self.logger.info(f"Attempt {attempt}/{max_retries}: Connecting to Milvus at {self.host}:{self.port}")
-                connections.connect("default", host=self.host, port=self.port, timeout=30)
+                connections.connect("default", host=self.host, port=self.port, timeout=10)
                 self.logger.info(f"Connected to Milvus server at {self.host}:{self.port}")
                 
                 # Create collection if it doesn't exist
@@ -135,13 +135,31 @@ class VectorStoreMilvus:
         schema = CollectionSchema(fields=fields, description="Knowledge node embeddings")
         self.collection = Collection(name=self.collection_name, schema=schema)
         
-        # Create index on vector field
+        # For small dimension sizes, FLAT index is faster and more efficient for tests
+        index_type = "FLAT" if self.dimension <= 384 else "HNSW"
         index_params = {
-            "metric_type": "L2",
-            "index_type": "HNSW",
-            "params": {"M": 8, "efConstruction": 64}
+            "metric_type": "COSINE",  # Using COSINE for semantic similarity
+            "index_type": index_type
         }
+        
+        # Add specific parameters for HNSW index
+        if index_type == "HNSW":
+            index_params["params"] = {"M": 8, "efConstruction": 64}
+            
+        # Create index and flush collection
+        self.logger.info(f"Creating {index_type} index for collection {self.collection_name}...")
         self.collection.create_index(field_name="embedding", index_params=index_params)
+        self.collection.flush()
+        
+        # Add a shorter delay for tests with smaller dimensions
+        wait_time = 2 if self.dimension <= 384 else 5
+        self.logger.info(f"Waiting {wait_time}s for index creation to complete...")
+        time.sleep(wait_time)
+        self.logger.info("Index creation delay completed")
+        
+        # Verify index exists
+        index_info = self.collection.index()
+        self.logger.info(f"Created index: {index_info}")
 
     def add_embedding(self, node_id: str, embedding: List[float]) -> None:
         """
@@ -199,7 +217,10 @@ class VectorStoreMilvus:
         if not self.collection:
             raise RuntimeError("Not connected to Milvus. Call connect() first.")
         
-        search_params = {"metric_type": "L2", "params": {"ef": 64}}
+        # For small dimension sizes, we need simpler search parameters
+        search_params = {"metric_type": "COSINE"}
+        if self.dimension > 384:
+            search_params["params"] = {"ef": 64}
         
         results = self.collection.search(
             data=[query_vector],

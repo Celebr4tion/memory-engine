@@ -33,3 +33,4 @@ pytest-asyncio
 
 # LLM API
 openai
+google-genai
