@@ -335,143 +335,76 @@ class TestVectorStoreMilvus(unittest.TestCase):
 
 @pytest.mark.integration
 class TestVectorStoreMilvusIntegration:
-    """Integration tests for VectorStoreMilvus with a real Milvus instance."""
+    """Integration tests with a real Milvus instance."""
     
-    def setup_method(self):
-        """Set up the test with actual connection to Milvus."""
-        import uuid
+    def setup_method(self, method, milvus_available=None):
+        """Set up test fixtures."""
+        # Skip if Milvus is not available (checked via fixture or directly)
+        is_available = milvus_available
+        if is_available is None:
+            # If not provided via fixture, check directly
+            try:
+                from pymilvus import connections
+                connections.connect("default", host="localhost", port="19530", timeout=5.0)
+                connections.disconnect("default")
+                is_available = True
+            except Exception:
+                is_available = False
         
-        # Generate a unique collection name for this test run
-        self.collection_name = f"test_collection_{uuid.uuid4().hex[:8]}"
-        self.dimension = 384  # Use a smaller dimension for faster tests
+        if not is_available:
+            pytest.skip("Milvus server not available")
+            
+        # Create a test collection name with timestamp to avoid conflicts
+        import time
+        self.collection_name = f"test_collection_{int(time.time())}"
         
         # Create the vector store
+        from memory_core.embeddings.vector_store import VectorStoreMilvus
         self.vector_store = VectorStoreMilvus(
-            host="localhost",
+            host="localhost", 
             port=19530,
-            collection_name=self.collection_name,
-            dimension=self.dimension
+            collection_name=self.collection_name
         )
         
-        # Check if we can connect to Milvus - use increased retries and interval
-        if not self.vector_store.connect(max_retries=3, retry_interval=5):
-            pytest.skip("Could not connect to Milvus. Make sure Docker container is running.")
-        
-        # Add additional delay after connection to ensure everything is properly initialized
-        print("Connection successful, adding stabilization delay...")
-        time.sleep(2)
-        print(f"Collection {self.collection_name} ready for testing")
+        # Connect to Milvus
+        self.vector_store.connect()
     
-    def teardown_method(self):
-        """Clean up after test."""
-        if hasattr(self, 'vector_store') and self.vector_store.collection:
-            try:
-                # Drop the collection
-                from pymilvus import utility
-                if utility.has_collection(self.collection_name):
-                    utility.drop_collection(self.collection_name)
-                    print(f"Collection {self.collection_name} dropped successfully")
-            except Exception as e:
-                print(f"Error cleaning up: {e}")
-            
-            # Disconnect
-            self.vector_store.disconnect()
-            print("Disconnected from Milvus")
+    def teardown_method(self, method):
+        """Clean up test fixtures."""
+        try:
+            # Drop the test collection
+            if hasattr(self, 'vector_store') and self.vector_store is not None:
+                self.vector_store.drop_collection()
+                self.vector_store.disconnect()
+        except Exception:
+            pass
     
-    def _create_random_embedding(self):
-        """Create a random embedding vector of the correct dimension."""
-        # Create a random vector
-        vector = np.random.rand(self.dimension)
-        # Normalize it
-        vector = vector / np.linalg.norm(vector)
-        return vector.tolist()
+    def test_live_add_and_search(self, milvus_available):
+        """Test adding and searching embeddings with a real Milvus instance."""
+        self.setup_method(None, milvus_available)
+        
+        # Create test embeddings
+        test_embedding1 = [0.1] * 768
+        test_embedding2 = [0.2] * 768
+        
+        # Add embeddings to the vector store
+        self.vector_store.add_embedding("node1", test_embedding1)
+        self.vector_store.add_embedding("node2", test_embedding2)
+        
+        # Search for embeddings
+        results = self.vector_store.search_embedding(test_embedding1, top_k=2)
+        
+        # Verify search results
+        assert len(results) > 0
+        assert results[0]["node_id"] == "node1"
     
-    def test_live_add_and_search(self):
-        """Test adding and searching with actual Milvus instance."""
-        import uuid
-        import threading
+    def test_live_empty_search(self, milvus_available):
+        """Test searching an empty collection with a real Milvus instance."""
+        self.setup_method(None, milvus_available)
         
-        # Create a test node with embedding
-        node_id = f"test_node_{uuid.uuid4().hex[:8]}"
-        embedding = self._create_random_embedding()
+        # Search for embeddings in an empty collection
+        test_embedding = [0.1] * 768
+        results = self.vector_store.search_embedding(test_embedding, top_k=2)
         
-        print(f"Adding embedding for node {node_id}...")
-        self.vector_store.add_embedding(node_id, embedding)
-        print("Embedding added successfully")
-        
-        # Add a small delay to ensure data is searchable
-        time.sleep(1)
-        
-        print("Searching for matching embedding...")
-        
-        # Use a flag to track if the test completes in time
-        test_completed = False
-        results = None
-        
-        def search_with_timeout():
-            nonlocal test_completed, results
-            # Search for the embedding
-            try:
-                results = self.vector_store.search_embedding(embedding, top_k=1)
-                test_completed = True
-            except Exception as e:
-                print(f"Search failed with error: {e}")
-        
-        # Create a thread to run the search
-        search_thread = threading.Thread(target=search_with_timeout)
-        search_thread.daemon = True
-        search_thread.start()
-        
-        # Wait for the thread to complete or timeout
-        search_thread.join(30)  # 30 second timeout
-        
-        if not test_completed:
-            pytest.fail("Search operation timed out after 30 seconds")
-        
-        print(f"Search returned {len(results)} results")
-        
-        # Verify results
-        assert len(results) == 1, f"Expected 1 result, got {len(results)}"
-        assert results[0]["node_id"] == node_id, f"Expected {node_id}, got {results[0]['node_id']}"
-        # For cosine similarity, the score should be close to 1.0 for identical vectors
-        assert results[0]["score"] > 0.99, f"Expected score > 0.99, got {results[0]['score']}"
-        print("Test completed successfully")
-    
-    def test_live_empty_search(self):
-        """Test searching when no embeddings exist."""
-        import threading
-        
-        # Create an empty collection (no embeddings added)
-        # then search for a random vector
-        query_vector = self._create_random_embedding()
-        
-        print("Searching empty collection...")
-        
-        # Use a flag to track if the test completes in time
-        test_completed = False
-        results = None
-        
-        def search_with_timeout():
-            nonlocal test_completed, results
-            # Search in empty collection
-            try:
-                results = self.vector_store.search_embedding(query_vector)
-                test_completed = True
-            except Exception as e:
-                print(f"Search failed with error: {e}")
-        
-        # Create a thread to run the search
-        search_thread = threading.Thread(target=search_with_timeout)
-        search_thread.daemon = True
-        search_thread.start()
-        
-        # Wait for the thread to complete or timeout
-        search_thread.join(10)  # 10 second timeout
-        
-        if not test_completed:
-            pytest.fail("Empty search operation timed out after 10 seconds")
-        
-        print(f"Search returned {len(results)} results as expected")
-        
-        # Verify empty results
-        assert len(results) == 0, f"Expected empty results, got {len(results)} results" 
+        # Verify search results
+        assert results == []

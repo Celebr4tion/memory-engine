@@ -34,3 +34,6 @@ pytest-asyncio
 # LLM API
 openai
 google-genai
+
+# Google Agent Development Kit
+google-adk
