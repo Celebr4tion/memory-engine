@@ -35,7 +35,7 @@ class TestVectorStoreMilvus(unittest.TestCase):
         self.mock_collection_class.return_value = self.mock_collection
         
         # Setup sample data
-        self.dimension = 3072  # Dimension for Gemini embeddings
+        self.dimension = 1536  # Dimension for Gemini embeddings
         self.host = "localhost"
         self.port = 19530
         self.collection_name = "test_collection"

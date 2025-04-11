@@ -39,7 +39,7 @@ class TestEmbeddingManagerClass(unittest.TestCase):
         self.sample_node_id = "test_node_1"
         
         # Mock embedding result
-        self.mock_embedding = np.random.rand(3072).tolist()  # Gemini embedding dimension
+        self.mock_embedding = np.random.rand(1536).tolist()  # Gemini embedding dimension
     
     def tearDown(self):
         """Clean up after each test method."""
@@ -64,7 +64,7 @@ class TestEmbeddingManagerClass(unittest.TestCase):
         )
         
         # Verify result
-        self.assertEqual(len(embedding), 3072)
+        self.assertEqual(len(embedding), 1536)
         self.assertEqual(embedding, self.mock_embedding)
     
     def test_generate_embedding_empty_text(self):
@@ -154,7 +154,7 @@ class TestEmbeddingManagerIntegration:
             host="localhost",
             port=19530,
             collection_name="test_embeddings",
-            dimension=3072  # Gemini embedding dimension
+            dimension=1536  # Gemini embedding dimension
         )
         
         # Create embedding manager
@@ -172,7 +172,7 @@ class TestEmbeddingManagerIntegration:
             embedding = self.embedding_manager.generate_embedding("What is the meaning of life?")
             
             # Verify result
-            assert len(embedding) == 3072
+            assert len(embedding) == 1536
             assert all(isinstance(x, float) for x in embedding)
         except Exception as e:
             pytest.skip(f"Skipping due to Gemini API error: {str(e)}")
