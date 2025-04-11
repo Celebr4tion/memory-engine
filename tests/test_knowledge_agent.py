@@ -29,6 +29,9 @@ class TestKnowledgeAgent:
         # Mock embedded_manager for retrieval tests
         self.mock_knowledge_engine.embedding_manager = MagicMock()
         
+        # Add this line to create a mock for the graph attribute
+        self.mock_knowledge_engine.graph = MagicMock()
+        
         # Create patches for ADK imports
         self.llm_agent_patcher = patch('memory_core.agents.knowledge_agent.LlmAgent')
         self.mock_llm_agent = self.llm_agent_patcher.start()

@@ -65,3 +65,18 @@ def google_adk_available():
         return True
     except ImportError:
         return False
+
+@pytest.fixture(scope="session")
+def embedding_model_info():
+    """Provide information about the embedding model."""
+    return {
+        "model_name": "gemini-embedding-exp-03-07",
+        "dimension": 1536
+    }
+
+@pytest.fixture(scope="session")
+def llm_model_info():
+    """Provide information about the LLM model."""
+    return {
+        "model_name": "gemini-2.5-pro-exp-03-25"
+    }

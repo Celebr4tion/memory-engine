@@ -6,7 +6,7 @@ allowing for efficient storage and retrieval of embeddings.
 """
 import logging
 import time
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 
 try:
     from pymilvus import (
@@ -22,31 +22,37 @@ except ImportError:
     MILVUS_AVAILABLE = False
 
 class VectorStoreMilvus:
-    """Vector storage implementation using Milvus."""
+    """
+    Milvus implementation of the vector store.
+    """
 
-    def __init__(self, host: str = "localhost", port: int = 19530, 
-                 collection_name: str = "knowledge_embeddings",
-                 dimension: int = 3072):
+    def __init__(
+        self, 
+        host: str = "localhost", 
+        port: Union[int, str] = 19530,
+        collection_name: str = "memory_engine_embeddings", 
+        dimension: int = 1536  # Updated to 1536 for gemini-embedding-exp-03-07
+    ):
         """
         Initialize the Milvus vector store.
 
         Args:
             host: Milvus server host
             port: Milvus server port
-            collection_name: Name of the collection to store embeddings
-            dimension: Dimension of the embedding vectors (3072 for Gemini embeddings)
+            collection_name: Name of the collection to use
+            dimension: Dimension of the embedding vectors (1536 for gemini-embedding-exp-03-07)
         """
-        if not MILVUS_AVAILABLE:
-            raise ImportError(
-                "pymilvus is not installed. Please install it with 'pip install pymilvus'"
-            )
-        
         self.host = host
         self.port = port
         self.collection_name = collection_name
         self.dimension = dimension
-        self.collection = None
         self.logger = logging.getLogger(__name__)
+        self.connected = False
+        self.index_params = {
+            "metric_type": "L2",  # Use L2 distance for similarity
+            "index_type": "IVF_FLAT",
+            "params": {"nlist": 1024}
+        }
 
     def connect(self, max_retries: int = 5, retry_interval: int = 10) -> bool:
         """
@@ -70,6 +76,7 @@ class VectorStoreMilvus:
                 
                 # Create collection if it doesn't exist
                 self._ensure_collection()
+                self.connected = True
                 return True
                 
             except Exception as e:
@@ -107,6 +114,7 @@ class VectorStoreMilvus:
             # Disconnect from server
             connections.disconnect("default")
             self.logger.info("Disconnected from Milvus server")
+            self.connected = False
         except Exception as e:
             self.logger.error(f"Error disconnecting from Milvus: {str(e)}")
 
@@ -135,27 +143,10 @@ class VectorStoreMilvus:
         schema = CollectionSchema(fields=fields, description="Knowledge node embeddings")
         self.collection = Collection(name=self.collection_name, schema=schema)
         
-        # For small dimension sizes, FLAT index is faster and more efficient for tests
-        index_type = "FLAT" if self.dimension <= 384 else "HNSW"
-        index_params = {
-            "metric_type": "COSINE",  # Using COSINE for semantic similarity
-            "index_type": index_type
-        }
-        
-        # Add specific parameters for HNSW index
-        if index_type == "HNSW":
-            index_params["params"] = {"M": 8, "efConstruction": 64}
-            
         # Create index and flush collection
-        self.logger.info(f"Creating {index_type} index for collection {self.collection_name}...")
-        self.collection.create_index(field_name="embedding", index_params=index_params)
+        self.logger.info(f"Creating index for collection {self.collection_name}...")
+        self.collection.create_index(field_name="embedding", index_params=self.index_params)
         self.collection.flush()
-        
-        # Add a shorter delay for tests with smaller dimensions
-        wait_time = 2 if self.dimension <= 384 else 5
-        self.logger.info(f"Waiting {wait_time}s for index creation to complete...")
-        time.sleep(wait_time)
-        self.logger.info("Index creation delay completed")
         
         # Verify index exists
         index_info = self.collection.index()
@@ -217,15 +208,10 @@ class VectorStoreMilvus:
         if not self.collection:
             raise RuntimeError("Not connected to Milvus. Call connect() first.")
         
-        # For small dimension sizes, we need simpler search parameters
-        search_params = {"metric_type": "COSINE"}
-        if self.dimension > 384:
-            search_params["params"] = {"ef": 64}
-        
         results = self.collection.search(
             data=[query_vector],
             anns_field="embedding",
-            param=search_params,
+            param=self.index_params,
             limit=top_k,
             output_fields=["node_id"]
         )
@@ -269,4 +255,4 @@ class VectorStoreMilvus:
         
         result = self.collection.delete(f'node_id == "{node_id}"')
         self.collection.flush()
-        return True 
+        return True

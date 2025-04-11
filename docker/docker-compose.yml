@@ -56,7 +56,36 @@ services:
       - milvus_data:/var/lib/milvus
     command: ["milvus", "run", "standalone"]
 
+  # JanusGraph database
+  janusgraph:
+    image: janusgraph/janusgraph:0.6.3
+    container_name: janusgraph
+    ports:
+      - "8182:8182"    # Gremlin Server port
+      - "8184:8184"    # JanusGraph HTTP port
+      - "9160:9160"    # Cassandra Thrift port
+      - "9042:9042"    # Cassandra CQL port
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx2g
+      # Configure explicit storage backend
+      - janusgraph.storage.backend=berkeleyje
+      - janusgraph.storage.directory=/var/lib/janusgraph/data
+    volumes:
+      - janusgraph_data:/var/lib/janusgraph
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8184/status"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 60s
+
 volumes:
   etcd_data:
   minio_data:
   milvus_data:
+  janusgraph_data:
+
+networks:
+  graph_network:
+    driver: bridge

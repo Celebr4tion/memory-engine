@@ -35,7 +35,7 @@ class KnowledgeAgent(LlmAgent):
     def __init__(
         self,
         knowledge_engine: KnowledgeEngine,
-        model: str = "gemini-1.5-pro",
+        model: str = "gemini-2.5-pro-exp-03-25",  # Updated to latest model
         name: str = "knowledge_agent",
         description: str = "An agent that can extract, store, and retrieve knowledge",
         **kwargs
@@ -45,7 +45,7 @@ class KnowledgeAgent(LlmAgent):
         
         Args:
             knowledge_engine: The KnowledgeEngine instance to use
-            model: The LLM model to use
+            model: The LLM model to use (default: gemini-2.5-pro-exp-03-25)
             name: The name of the agent
             description: The description of the agent
             **kwargs: Additional arguments to pass to LlmAgent
