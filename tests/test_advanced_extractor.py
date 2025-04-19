@@ -250,7 +250,7 @@ class TestAdvancedExtractorIntegration:
                 assert isinstance(unit["tags"], list)
                 assert isinstance(unit["metadata"], dict)
         except Exception as e:
-            pytest.skip(f"Skipping due to Gemini API error: {str(e)}")
+            pytest.skip(f"Gemini API error: {str(e)}")
     
     def test_live_extract_empty_result(self):
         """Test extracting knowledge units from text that's too short."""
@@ -264,7 +264,7 @@ class TestAdvancedExtractorIntegration:
                 for unit in units:
                     assert "content" in unit
         except Exception as e:
-            pytest.skip(f"Skipping due to Gemini API error: {str(e)}")
+            pytest.skip(f"Gemini API error: {str(e)}")
 
 
 if __name__ == "__main__":

@@ -71,7 +71,7 @@ def embedding_model_info():
     """Provide information about the embedding model."""
     return {
         "model_name": "gemini-embedding-exp-03-07",
-        "dimension": 1536
+        "dimension": 3072
     }
 
 @pytest.fixture(scope="session")

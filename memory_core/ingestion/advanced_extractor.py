@@ -12,6 +12,8 @@ import time
 from typing import List, Dict, Any, Optional
 
 from google import genai
+# Import types for GenerationConfig
+from google.genai import types
 
 class AdvancedExtractor:
     """
@@ -29,12 +31,12 @@ class AdvancedExtractor:
         """
         self.logger = logging.getLogger(__name__)
         
-        # Initialize Gemini client
+        # Initialize Gemini client using genai.Client
         api_key = os.getenv('GEMINI_API_KEY')
         if not api_key:
             raise ValueError("GEMINI_API_KEY environment variable not set")
-        self.client = genai.Client(api_key=api_key)
-        self.model = "gemini-1.5-pro"
+        self.client = genai.Client(api_key=api_key) 
+        self.model = "gemini-2.5-flash-preview-04-17"
         
     def _create_prompt(self, raw_text: str) -> str:
         """
@@ -46,34 +48,33 @@ class AdvancedExtractor:
         Returns:
             A formatted prompt string
         """
-        return f"""
-You are an expert at transforming raw text into structured knowledge units.
-For each distinct piece of knowledge in the text, return a JSON object with this format:
-{{
-  "content": "<short statement capturing a single knowledge unit>",
-  "tags": ["<tag1>", "<tag2>", ...],
-  "metadata": {{
-    "confidence_level": "<float between 0 and 1>",
-    "domain": "<primary knowledge domain>",
-    "language": "<language of the content>",
-    "importance": "<float between 0 and 1>"
-  }},
-  "source": {{
-    "type": "<source type: webpage, book, scientific_paper, video, user_input, etc.>",
-    "url": "<url if applicable>",
-    "reference": "<citation or reference information>",
-    "page": "<page number if applicable>"
-  }}
-}}
+        return f"""You are an expert at transforming raw text into structured knowledge units.
+                For each distinct piece of knowledge in the text, return a JSON object with this format:
+                {{
+                "content": "<short statement capturing a single knowledge unit>",
+                "tags": ["<tag1>", "<tag2>", ...],
+                "metadata": {{
+                    "confidence_level": "<float between 0 and 1>",
+                    "domain": "<primary knowledge domain>",
+                    "language": "<language of the content>",
+                    "importance": "<float between 0 and 1>"
+                }},
+                "source": {{
+                    "type": "<source type: webpage, book, scientific_paper, video, user_input, etc.>",
+                    "url": "<url if applicable>",
+                    "reference": "<citation or reference information>",
+                    "page": "<page number if applicable>"
+                }}
+                }}
 
-Extract as many meaningful knowledge units as possible from the input. If the text is too short, 
-ambiguous, or doesn't contain meaningful information, return an empty list: [].
+                Extract as many meaningful knowledge units as possible from the input. If the text is too short, 
+                ambiguous, or doesn't contain meaningful information, return an empty list: [].
 
-Format your entire response as a valid JSON array of these objects.
+                Format your entire response as a valid JSON array of these objects.
 
-Text input:
-{raw_text}
-"""
+                Text input:
+                {raw_text}
+                """
 
     def extract_knowledge_units(self, raw_text: str) -> List[Dict[str, Any]]:
         """
@@ -91,41 +92,35 @@ Text input:
         """
         if not raw_text or not raw_text.strip():
             return []
-            
+        
+        response = None  # Initialize response to None
         try:
             # Prepare prompt
             prompt = self._create_prompt(raw_text)
             
-            # Call LLM API
-            generation_config = {
-                "temperature": 0.2,  # Low temperature for more deterministic responses
-                "top_p": 0.95,
-                "top_k": 40,
-                "max_output_tokens": 8192,  # Allow long responses for complex texts
-            }
+            # Create GenerateContentConfig object
+            gen_config = types.GenerateContentConfig(
+                temperature=0.4,
+                top_p=0.95,
+                top_k=40,
+                max_output_tokens=8192,
+                # Ensure response is JSON
+                response_mime_type="application/json" 
+            )
             
-            response = self.client.generate_content(
+            # Pass GenerateContentConfig object to generation_config parameter
+            response = self.client.models.generate_content(
                 model=self.model,
                 contents=prompt,
-                generation_config=generation_config
+                config=gen_config # Pass the config object
             )
             
             # Extract JSON from response
             try:
-                response_text = response.text
-                # Clean up the response to ensure it's valid JSON
-                # Sometimes LLMs add markdown code block markers
-                json_text = response_text.strip()
-                if json_text.startswith("```json"):
-                    json_text = json_text[7:]
-                if json_text.startswith("```"):
-                    json_text = json_text[3:]
-                if json_text.endswith("```"):
-                    json_text = json_text[:-3]
-                json_text = json_text.strip()
-                
-                # Parse the JSON
-                knowledge_units = json.loads(json_text)
+                # Access text directly from response.text
+                response_text = response.text 
+                # No need for manual JSON cleanup if response_mime_type is set
+                knowledge_units = json.loads(response_text)
                 
                 # Validate the response structure
                 if not isinstance(knowledge_units, list):
@@ -145,6 +140,11 @@ Text input:
                 
         except Exception as e:
             self.logger.error(f"Error extracting knowledge units: {str(e)}")
+            if response:
+                if hasattr(response, 'prompt_feedback'):
+                    self.logger.error(f"Prompt Feedback: {response.prompt_feedback}")
+                if hasattr(response, 'candidates') and not response.candidates:
+                    self.logger.error("No candidates returned in the response.")
             raise RuntimeError(f"Failed to extract knowledge units: {str(e)}")
 
 

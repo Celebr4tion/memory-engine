@@ -35,7 +35,7 @@ class TestVectorStoreMilvus(unittest.TestCase):
         self.mock_collection_class.return_value = self.mock_collection
         
         # Setup sample data
-        self.dimension = 1536  # Dimension for Gemini embeddings
+        self.dimension = 3072  # Dimension for Gemini embeddings
         self.host = "localhost"
         self.port = 19530
         self.collection_name = "test_collection"
@@ -358,13 +358,13 @@ class TestVectorStoreMilvusIntegration:
         import time
         self.collection_name = f"test_collection_{int(time.time())}"
         
-        # Create the vector store with 1536 dimensions to match gemini-embedding-exp-03-07
+        # Create the vector store with 3072 dimensions to match gemini-embedding-exp-03-07
         from memory_core.embeddings.vector_store import VectorStoreMilvus
         self.vector_store = VectorStoreMilvus(
             host="localhost", 
             port=19530,
             collection_name=self.collection_name,
-            dimension=1536  # Set dimension to 1536 to match gemini-embedding-exp-03-07
+            dimension=3072  # Set dimension to 3072 to match gemini-embedding-exp-03-07
         )
         
         # Connect to Milvus
@@ -384,9 +384,9 @@ class TestVectorStoreMilvusIntegration:
         """Test adding and searching embeddings with a real Milvus instance."""
         self.setup_method(None, milvus_available)
         
-        # Create test embeddings with 1536 dimensions
-        test_embedding1 = [0.1] * 1536  # 1536-dimensional vector
-        test_embedding2 = [0.2] * 1536  # 1536-dimensional vector
+        # Create test embeddings with 3072 dimensions
+        test_embedding1 = [0.1] * 3072  # 3072-dimensional vector
+        test_embedding2 = [0.2] * 3072  # 3072-dimensional vector
         
         # Add embeddings to the vector store
         self.vector_store.add_embedding("node1", test_embedding1)
@@ -403,8 +403,8 @@ class TestVectorStoreMilvusIntegration:
         """Test searching an empty collection with a real Milvus instance."""
         self.setup_method(None, milvus_available)
         
-        # Search for embeddings in an empty collection with 1536 dimensions
-        test_embedding = [0.1] * 1536  # 1536-dimensional vector
+        # Search for embeddings in an empty collection with 3072 dimensions
+        test_embedding = [0.1] * 3072  # 3072-dimensional vector
         results = self.vector_store.search_embedding(test_embedding, top_k=2)
         
         # Verify search results

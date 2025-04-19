@@ -31,7 +31,7 @@ class VectorStoreMilvus:
         host: str = "localhost", 
         port: Union[int, str] = 19530,
         collection_name: str = "memory_engine_embeddings", 
-        dimension: int = 1536  # Updated to 1536 for gemini-embedding-exp-03-07
+        dimension: int = 3072  # Updated to 3072 for gemini-embedding-exp-03-07
     ):
         """
         Initialize the Milvus vector store.
@@ -40,7 +40,7 @@ class VectorStoreMilvus:
             host: Milvus server host
             port: Milvus server port
             collection_name: Name of the collection to use
-            dimension: Dimension of the embedding vectors (1536 for gemini-embedding-exp-03-07)
+            dimension: Dimension of the embedding vectors (3072 for gemini-embedding-exp-03-07)
         """
         self.host = host
         self.port = port

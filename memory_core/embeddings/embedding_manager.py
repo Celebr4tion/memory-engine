@@ -6,6 +6,7 @@ import logging
 from typing import List
 
 from google import genai
+from google.genai import types
 from memory_core.embeddings.vector_store import VectorStoreMilvus
 
 class EmbeddingManager:
@@ -21,18 +22,20 @@ class EmbeddingManager:
         self.vector_store = vector_store
         self.logger = logging.getLogger(__name__)
         
-        # Initialize Gemini client
+        # Initialize Gemini client using genai.Client
         api_key = os.getenv('GEMINI_API_KEY')
         if not api_key:
             raise ValueError("GEMINI_API_KEY environment variable not set")
-        self.client = genai.Client(api_key=api_key)
+        self.client = genai.Client(api_key=api_key)  # Use genai.Client as per the documentation example
+        self.embedding_model = "gemini-embedding-exp-03-07"  # Use the standard embedding model
     
-    def generate_embedding(self, text: str) -> List[float]:
+    def generate_embedding(self, text: str, task_type: str = "SEMANTIC_SIMILARITY") -> List[float]:
         """
         Generate an embedding vector for the given text using Gemini API.
         
         Args:
             text: The text to generate embedding for
+            task_type: The task type for embedding generation (e.g., SEMANTIC_SIMILARITY, RETRIEVAL_QUERY)
             
         Returns:
             List[float]: The embedding vector
@@ -45,17 +48,39 @@ class EmbeddingManager:
             raise ValueError("Text cannot be empty or None")
         
         try:
-            self.logger.info(f"Generating embedding for text: {text[:50]}...")
+            self.logger.info(f"Generating embedding for text (task: {task_type}): {text[:50]}...")
+            # Generate embedding using typed EmbedContentConfig to match API expectations and tests
             result = self.client.models.embed_content(
-                model='gemini-embedding-exp-03-07',
+                model=self.embedding_model,
                 contents=text,
-                config={'task_type': 'SEMANTIC_SIMILARITY'}
+                config=types.EmbedContentConfig(task_type=task_type)
             )
-            
-            if not result.embeddings:
-                raise RuntimeError("No embeddings returned from Gemini API")
-                
-            embedding = result.embeddings[0]
+            # Support different response structures
+            if hasattr(result, 'embeddings'):
+                # result.embeddings expected to be a list of embed outputs
+                if isinstance(result.embeddings, list) and result.embeddings:
+                    first_item = result.embeddings[0]
+                    # list of floats
+                    if isinstance(first_item, list):
+                        embedding = first_item
+                    # object with .values attribute
+                    elif hasattr(first_item, 'values'):
+                        embedding = first_item.values
+                    else:
+                        self.logger.error(f"Unexpected embeddings element type: {type(first_item)}")
+                        raise RuntimeError("Unexpected embedding result structure received from API.")
+                else:
+                    self.logger.error(f"Unexpected embeddings structure: {result.embeddings}")
+                    raise RuntimeError("Unexpected embedding result structure received from API.")
+            elif hasattr(result, 'embedding') and hasattr(result.embedding, 'values'):
+                embedding = result.embedding.values
+            else:
+                self.logger.error(f"Unexpected embedding result structure: {result}")
+                raise RuntimeError("Unexpected embedding result structure received from API.")
+            # Validate embedding format
+            if not isinstance(embedding, list):
+                self.logger.error(f"Final embedding format is not a list: {type(embedding)}")
+                raise RuntimeError(f"Final embedding format is not a list: {type(embedding)}")
             self.logger.info(f"Generated embedding of length {len(embedding)}")
             return embedding
             
@@ -81,8 +106,8 @@ class EmbeddingManager:
             raise ValueError("text cannot be empty or None")
             
         try:
-            # Generate embedding
-            embedding = self.generate_embedding(text)
+            # Generate embedding with RETRIEVAL_DOCUMENT task type
+            embedding = self.generate_embedding(text, task_type="RETRIEVAL_DOCUMENT")
             
             # Store in vector store
             self.vector_store.add_embedding(node_id, embedding)
@@ -112,8 +137,9 @@ class EmbeddingManager:
         """
         try:
             self.logger.info(f"Searching for similar nodes to query: {query_text[:50]}...")
-            query_embedding = self.generate_embedding(query_text)
-            
+            # Generate query embedding with RETRIEVAL_QUERY task type
+            query_embedding = self.generate_embedding(query_text, task_type="RETRIEVAL_QUERY")
+
             node_ids = self.vector_store.get_node_ids(query_embedding, top_k)
             self.logger.info(f"Found {len(node_ids)} similar nodes for query text")
             
@@ -121,4 +147,4 @@ class EmbeddingManager:
             
         except Exception as e:
             self.logger.error(f"Error searching for similar nodes: {str(e)}")
-            raise RuntimeError(f"Failed to search for similar nodes: {str(e)}") 
+            raise RuntimeError(f"Failed to search for similar nodes: {str(e)}")
