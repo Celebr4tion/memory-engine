@@ -37,3 +37,6 @@ google-genai
 
 # Google Agent Development Kit
 google-adk
+
+# WebSocket for Gremlin
+tornado
