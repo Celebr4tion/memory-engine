@@ -1,6 +1,5 @@
 # JanusGraph connectivity
-gremlinpython
-aiogremlin
+gremlinpython>=3.7.0
 
 # Vector database
 faiss-cpu
@@ -30,6 +29,7 @@ tqdm
 pytest
 pytest-cov
 pytest-asyncio
+pytest-env
 
 # LLM API
 openai
@@ -40,3 +40,6 @@ google-adk
 
 # WebSocket for Gremlin
 tornado
+
+# Optional: For integration test coverage
+coverage

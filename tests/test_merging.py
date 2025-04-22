@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 import json
 import time
 import pytest
+import os
 
 from memory_core.ingestion.merging import merge_or_create_node, _merge_node_data, _deep_merge_dicts
 from memory_core.db.janusgraph_storage import JanusGraphStorage
@@ -310,11 +311,23 @@ class TestMergingIntegration:
         try:
             # Create real dependencies
             from memory_core.core.knowledge_engine import KnowledgeEngine
+            from memory_core.db.janusgraph_storage import JanusGraphStorage
+            from memory_core.embeddings.embedding_manager import EmbeddingManager
+            
+            # Check if JanusGraph is available
+            if not JanusGraphStorage.is_available_sync():
+                pytest.skip("JanusGraph is not available")
+            
+            # Initialize KnowledgeEngine
             self.engine = KnowledgeEngine()
             self.engine.connect()
             
+            # Store references to storage and embedding_manager
+            self.storage = self.engine.storage
+            self.embedding_manager = self.engine.embedding_manager
+            
             # Check if vector store is available
-            if self.engine.embedding_manager is None:
+            if self.embedding_manager is None or not hasattr(self.embedding_manager, 'vector_store'):
                 pytest.skip("Embedding manager is not available")
                 
             # Create test nodes
@@ -353,18 +366,29 @@ class TestMergingIntegration:
     
     def teardown_method(self):
         """Clean up after test."""
-        # Skip cleanup if test was skipped
-        if not hasattr(self, 'engine'):
-            return
-            
-        try:
+        # Add cleanup logic here if needed
+        if hasattr(self, 'engine'):
             self.engine.disconnect()
-        except:
-            pass
+        if hasattr(self, 'storage') and self.storage:
+            self.storage.close()
+        if hasattr(self, 'embedding_manager') and hasattr(self.embedding_manager, 'vector_store'):
+            self.embedding_manager.vector_store.disconnect()
     
-    @pytest.mark.skipif(True, reason="Integration test requires running JanusGraph and Milvus")
+    @pytest.mark.skipif(
+        os.environ.get("SKIP_INTEGRATION_TESTS", "true").lower() == "true",
+        reason="Integration tests are disabled"
+    )
     def test_merge_similar_nodes(self):
-        """Test merging similar nodes in a real environment."""
+        """Test merging similar nodes with real backend."""
+        # Ensure storage and its connection (g) are available
+        if not hasattr(self, 'storage') or not self.storage.g:
+            pytest.skip("JanusGraph storage not available in setup")
+        # Ensure embedding manager and its connection are available
+        if not hasattr(self, 'embedding_manager') or not self.embedding_manager.vector_store.is_connected:
+            pytest.skip("Embedding manager / Milvus not available in setup")
+
+        embedding_manager = self.embedding_manager # Use the one from setup
+
         try:
             # Create first node
             node1_id = merge_or_create_node(
@@ -386,13 +410,19 @@ class TestMergingIntegration:
             # Verify that IDs are the same (merged)
             assert node1_id == node2_id
             
-            # Get the merged node
-            merged_node = self.engine.storage.get_node(node1_id)
+            # Get the first node (or merged node if embeddings used)
+            retrieved_node1 = self.engine.storage.get_node(node1_id)
             
-            # Verify that tags were combined
-            expected_tags = set(['ai', 'machine learning', 'intelligence', 'computer science'])
-            actual_tags = set(merged_node.get('tags', '').split(','))
-            assert expected_tags.issubset(actual_tags)
+            # Verify tags were handled correctly (either merged or kept separate)
+            expected_tags_node1 = set(self.node1_data.get('tags', '').split(','))
+            if embedding_manager: # Merged case
+                # Note: graph db might store tags differently (e.g., sorted string)
+                expected_tags_merged = sorted(list(expected_tags_node1.union(set(self.node2_data.get('tags', '').split(',')))))
+                actual_tags = sorted(retrieved_node1.get('tags', '').split(',')) 
+                assert actual_tags == expected_tags_merged, f"Expected {expected_tags_merged}, got {actual_tags}"
+            else: # Separate case
+                actual_tags_node1 = set(retrieved_node1.get('tags', '').split(','))
+                assert actual_tags_node1 == expected_tags_node1
             
             # Create third node (different content, should not be merged)
             node3_id = merge_or_create_node(
@@ -407,14 +437,18 @@ class TestMergingIntegration:
             
             # Clean up
             self.engine.storage.delete_node(node1_id)
+            if not embedding_manager: # Delete node 2 if separate
+                self.engine.storage.delete_node(node2_id)
             self.engine.storage.delete_node(node3_id)
             
         except Exception as e:
+            # Print full exception for debugging
+            import traceback
+            print(f"\nIntegration test failed unexpectedly:\n{traceback.format_exc()}\n")
             pytest.fail(f"Integration test failed: {str(e)}")
 
 
 if __name__ == "__main__":
-    import os
     if os.environ.get("SKIP_INTEGRATION_TESTS", "true").lower() == "true":
         # Run only unit tests
         unittest.main()

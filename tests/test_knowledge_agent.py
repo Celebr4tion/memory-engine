@@ -242,7 +242,13 @@ class TestKnowledgeAgentIntegration:
         try:
             # Create a mock KnowledgeEngine with mocked graph functions
             self.mock_engine = MagicMock(spec=KnowledgeEngine)
-            self.mock_engine.storage.g = True  # Pretend we're connected
+            
+            # Create and configure mock storage
+            self.mock_storage = MagicMock()
+            self.mock_storage.g = True  # Pretend we're connected
+            self.mock_engine.storage = self.mock_storage  # Set the storage on the engine
+            
+            # Mock required methods
             self.mock_engine.save_node = MagicMock(return_value="test_node_id")
             self.mock_engine.save_relationship = MagicMock(return_value="test_edge_id")
             

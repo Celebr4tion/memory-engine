@@ -34,17 +34,8 @@ def milvus_available():
 def janusgraph_available():
     """Check if JanusGraph is available."""
     try:
-        from gremlin_python.driver.client import Client
-        from gremlin_python.driver.serializer import GraphSONSerializersV3d0
-        client = Client(
-            'ws://localhost:8182/gremlin',
-            'g',
-            message_serializer=GraphSONSerializersV3d0()
-        )
-        # Try a simple query
-        client.submit('g.V().limit(1).count()').all().result()
-        client.close()
-        return True
+        from memory_core.db.janusgraph_storage import JanusGraphStorage
+        return JanusGraphStorage.is_available(timeout=5)
     except Exception as e:
         print(f"JanusGraph not available: {str(e)}")
         return False

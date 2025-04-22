@@ -4,12 +4,16 @@ Graph storage adapter module for converting between domain models and database s
 This module provides adapters for converting KnowledgeNode and Relationship
 objects to and from JanusGraph storage formats.
 """
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, TYPE_CHECKING
 
-from memory_core.db.janusgraph_storage import JanusGraphStorage
+# Remove direct import to break cycle
+# from memory_core.db.janusgraph_storage import JanusGraphStorage
 from memory_core.model.knowledge_node import KnowledgeNode
 from memory_core.model.relationship import Relationship
 
+# Use TYPE_CHECKING to allow type hint without runtime import
+if TYPE_CHECKING:
+    from memory_core.db.janusgraph_storage import JanusGraphStorage
 
 class GraphStorageAdapter:
     """
@@ -19,7 +23,7 @@ class GraphStorageAdapter:
     to a format suitable for JanusGraph storage, and vice versa.
     """
     
-    def __init__(self, storage: JanusGraphStorage):
+    def __init__(self, storage: 'JanusGraphStorage'):
         """
         Initialize the adapter with a JanusGraphStorage instance.
         

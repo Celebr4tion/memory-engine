@@ -8,6 +8,7 @@ from unittest.mock import patch, MagicMock
 import os
 import numpy as np
 import pytest
+import time  # Import time module
 
 from memory_core.embeddings.embedding_manager import EmbeddingManager
 from memory_core.embeddings.vector_store import VectorStoreMilvus
@@ -157,9 +158,22 @@ class TestEmbeddingManagerIntegration:
             dimension=3072  # Gemini embedding dimension
         )
         
-        # Create embedding manager
-        self.embedding_manager = EmbeddingManager(self.vector_store)
-    
+        # Add a delay before trying to connect to Milvus
+        time.sleep(5)  # Wait 5 seconds for Milvus to potentially start up
+        
+        # Try connecting to Milvus during setup
+        try:
+            if not self.vector_store.connect():
+                pytest.skip("Could not connect to Milvus during setup")
+                
+            # Create embedding manager *after* successful connection
+            self.embedding_manager = EmbeddingManager(self.vector_store)
+            
+        except Exception as e:
+            # Ensure embedding_manager is not set if connection failed
+            self.embedding_manager = None 
+            pytest.skip(f"Error connecting to Milvus during setup: {str(e)}")
+            
     def teardown_method(self):
         """Clean up after test."""
         if hasattr(self, 'vector_store'):
@@ -179,9 +193,9 @@ class TestEmbeddingManagerIntegration:
     
     def test_live_store_and_search(self):
         """Test storing and searching embeddings with real services."""
-        # Skip if Milvus not available
-        if not self.vector_store.connect():
-            pytest.skip("Could not connect to Milvus")
+        # Connection is now checked in setup_method
+        # if not self.vector_store.connect():
+        #     pytest.skip("Could not connect to Milvus")
         
         try:
             # Store embedding
