@@ -74,8 +74,11 @@ class ResultRanker:
     - Customizable ranking criteria and weights
     """
     
-    def __init__(self):
+    def __init__(self, quality_enhancement_engine=None):
         self.logger = logging.getLogger(__name__)
+        
+        # Optional quality enhancement engine for advanced quality scoring
+        self.quality_enhancement_engine = quality_enhancement_engine
         
         # Statistics for adaptive ranking
         self.result_stats = defaultdict(dict)
@@ -252,7 +255,7 @@ class ResultRanker:
     
     def _calculate_quality_score(self, result: QueryResult) -> float:
         """
-        Calculate quality score from node ratings.
+        Calculate quality score from node ratings or advanced quality assessment.
         
         Args:
             result: Query result
@@ -264,17 +267,59 @@ class ResultRanker:
         if hasattr(result, 'quality_score') and result.quality_score > 0:
             return min(result.quality_score, 1.0)
         
-        # Extract quality metrics from metadata
+        # Check for enhanced quality score in metadata
         metadata = result.metadata or {}
+        if 'quality_score' in metadata:
+            return min(metadata['quality_score'], 1.0)
         
-        # Rating components (typical values 0.0 to 1.0)
+        # Use quality enhancement engine if available
+        if self.quality_enhancement_engine:
+            try:
+                from memory_core.model.knowledge_node import KnowledgeNode
+                
+                # Create temporary node for quality assessment using correct constructor
+                temp_node = KnowledgeNode(
+                    content=result.content,
+                    source=metadata.get('source', 'unknown'),
+                    node_id=result.node_id,
+                    rating_richness=metadata.get('rating_richness', 0.5),
+                    rating_truthfulness=metadata.get('rating_truthfulness', 0.5),
+                    rating_stability=metadata.get('rating_stability', 0.5)
+                )
+                
+                # Add metadata and node_type as attributes
+                temp_node.metadata = metadata
+                temp_node.node_type = result.node_type or 'document'
+                
+                # Get quality score from enhancement engine
+                quality_score = self.quality_enhancement_engine.get_quality_score(temp_node)
+                
+                # Cache the result for future use
+                self.quality_cache[result.node_id] = quality_score.overall_score
+                
+                return quality_score.overall_score
+                
+            except Exception as e:
+                self.logger.warning(f"Failed to get enhanced quality score for {result.node_id}: {e}")
+                # Fall through to basic quality calculation
+        
+        # Check quality cache
+        if result.node_id in self.quality_cache:
+            return self.quality_cache[result.node_id]
+        
+        # Extract quality metrics from metadata (fallback)
         richness = metadata.get('rating_richness', 0.5)
         truthfulness = metadata.get('rating_truthfulness', 0.5)
         stability = metadata.get('rating_stability', 0.5)
         
         # Weighted combination
         quality_score = (richness * 0.4 + truthfulness * 0.4 + stability * 0.2)
-        return min(quality_score, 1.0)
+        quality_score = min(quality_score, 1.0)
+        
+        # Cache the result
+        self.quality_cache[result.node_id] = quality_score
+        
+        return quality_score
     
     def _calculate_freshness_score(self, result: QueryResult) -> float:
         """

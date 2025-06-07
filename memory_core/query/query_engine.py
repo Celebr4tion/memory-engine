@@ -44,7 +44,8 @@ class AdvancedQueryEngine:
     def __init__(self, 
                  graph_adapter: GraphStorageAdapter,
                  embedding_manager: EmbeddingManager,
-                 rating_storage=None):
+                 rating_storage=None,
+                 quality_enhancement_engine=None):
         """
         Initialize the advanced query engine.
         
@@ -52,6 +53,7 @@ class AdvancedQueryEngine:
             graph_adapter: Graph storage adapter for data access
             embedding_manager: Embedding manager for semantic searches
             rating_storage: Rating storage for quality scoring (optional)
+            quality_enhancement_engine: Quality enhancement engine for advanced quality scoring (optional)
         """
         self.logger = logging.getLogger(__name__)
         
@@ -59,11 +61,12 @@ class AdvancedQueryEngine:
         self.graph_adapter = graph_adapter
         self.embedding_manager = embedding_manager
         self.rating_storage = rating_storage
+        self.quality_enhancement_engine = quality_enhancement_engine
         
         # Query processing components
         self.nlp_processor = NaturalLanguageQueryProcessor()
         self.optimizer = QueryOptimizer()
-        self.ranker = ResultRanker()
+        self.ranker = ResultRanker(quality_enhancement_engine)
         self.cache = QueryCache()
         self.filter_processor = FilterProcessor()
         self.aggregation_processor = AggregationProcessor(self.filter_processor)
@@ -494,6 +497,23 @@ class AdvancedQueryEngine:
             self.stats.performance_metrics['medium_queries'] = self.stats.performance_metrics.get('medium_queries', 0) + 1
         else:
             self.stats.performance_metrics['slow_queries'] = self.stats.performance_metrics.get('slow_queries', 0) + 1
+    
+    def query_with_quality_enhancement(self, request: QueryRequest) -> QueryResponse:
+        """
+        Execute a query with enhanced quality-based ranking.
+        
+        Args:
+            request: Query request to execute
+            
+        Returns:
+            Query response with quality-enhanced ranking
+        """
+        if self.quality_enhancement_engine:
+            return self.quality_enhancement_engine.enhance_query_with_quality_ranking(request)
+        else:
+            # Fall back to standard query if no quality enhancement engine
+            self.logger.warning("Quality enhancement engine not available, falling back to standard query")
+            return self.query(request)
     
     def get_statistics(self) -> Dict[str, Any]:
         """
