@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "memory-engine-mcp": {
+      "command": "python",
+      "args": ["-m", "memory_core.mcp_integration.enhanced_mcp_endpoint"],
+      "env": {
+        "LOG_LEVEL": "INFO"
+      }
+    }
+  },
+  "tools": {
+    "memory_engine": {
+      "enabled": true,
+      "description": "Memory Engine MCP server for knowledge management"
+    }
+  }
+}
