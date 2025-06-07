@@ -8,6 +8,8 @@ import logging
 import time
 from typing import List, Dict, Any, Optional, Union
 
+from memory_core.config import get_config
+
 try:
     from pymilvus import (
         connections,
@@ -28,30 +30,31 @@ class VectorStoreMilvus:
 
     def __init__(
         self, 
-        host: str = "localhost", 
-        port: Union[int, str] = 19530,
-        collection_name: str = "memory_engine_embeddings", 
-        dimension: int = 3072  # Updated to 3072 for gemini-embedding-exp-03-07
+        host: Optional[str] = None, 
+        port: Optional[Union[int, str]] = None,
+        collection_name: Optional[str] = None, 
+        dimension: Optional[int] = None
     ):
         """
         Initialize the Milvus vector store.
 
         Args:
-            host: Milvus server host
-            port: Milvus server port
-            collection_name: Name of the collection to use
-            dimension: Dimension of the embedding vectors (3072 for gemini-embedding-exp-03-07)
+            host: Milvus server host (optional, will use config if not provided)
+            port: Milvus server port (optional, will use config if not provided)
+            collection_name: Name of the collection to use (optional, will use config if not provided)
+            dimension: Dimension of the embedding vectors (optional, will use config if not provided)
         """
-        self.host = host
-        self.port = port
-        self.collection_name = collection_name
-        self.dimension = dimension
+        self.config = get_config()
+        self.host = host or self.config.config.vector_store.milvus.host
+        self.port = port or self.config.config.vector_store.milvus.port
+        self.collection_name = collection_name or self.config.config.vector_store.milvus.collection_name
+        self.dimension = dimension or self.config.config.vector_store.milvus.dimension
         self.logger = logging.getLogger(__name__)
         self.connected = False
         self.index_params = {
-            "metric_type": "L2",  # Use L2 distance for similarity
-            "index_type": "IVF_FLAT",
-            "params": {"nlist": 1024}
+            "metric_type": self.config.config.vector_store.milvus.metric_type,
+            "index_type": self.config.config.vector_store.milvus.index_type,
+            "params": {"nlist": self.config.config.vector_store.milvus.nlist}
         }
 
     def connect(self, max_retries: int = 5, retry_interval: int = 10) -> bool:
@@ -71,7 +74,15 @@ class VectorStoreMilvus:
             try:
                 # Connect to Milvus server
                 self.logger.info(f"Attempt {attempt}/{max_retries}: Connecting to Milvus at {self.host}:{self.port}")
-                connections.connect("default", host=self.host, port=self.port, timeout=10)
+                connect_args = {"host": self.host, "port": self.port, "timeout": 10}
+                
+                # Add authentication if configured
+                if self.config.config.vector_store.milvus.user:
+                    connect_args["user"] = self.config.config.vector_store.milvus.user
+                if self.config.config.vector_store.milvus.password:
+                    connect_args["password"] = self.config.config.vector_store.milvus.password
+                
+                connections.connect("default", **connect_args)
                 self.logger.info(f"Connected to Milvus server at {self.host}:{self.port}")
                 
                 # Create collection if it doesn't exist

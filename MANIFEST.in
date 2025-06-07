@@ -1,0 +1,36 @@
+# Include configuration files
+include config/*.yaml
+recursive-include config/environments *.yaml
+
+# Include documentation
+recursive-include docs *.md *.rst *.txt
+include README.md
+include LICENSE.md
+
+# Include scripts
+recursive-include scripts *.sh *.py
+
+# Include examples
+recursive-include examples *.py *.md
+
+# Include test data (if any)
+recursive-include tests/data *
+
+# Include Docker files
+include docker/*.yml
+include docker/*.yaml
+
+# Include project configuration
+include pytest.ini
+include pyproject.toml
+include setup.py
+include requirements.txt
+
+# Exclude unwanted files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude __pycache__
+global-exclude .pytest_cache
+global-exclude .coverage
+global-exclude .DS_Store

@@ -1,13 +1,13 @@
 """
 Embedding manager for generating and storing embeddings using Gemini API.
 """
-import os
 import logging
 from typing import List
 
 from google import genai
 from google.genai import types
 from memory_core.embeddings.vector_store import VectorStoreMilvus
+from memory_core.config import get_config
 
 class EmbeddingManager:
     """Manager for generating and storing embeddings using Gemini API."""
@@ -21,13 +21,14 @@ class EmbeddingManager:
         """
         self.vector_store = vector_store
         self.logger = logging.getLogger(__name__)
+        self.config = get_config()
         
         # Initialize Gemini client using genai.Client
-        api_key = os.getenv('GEMINI_API_KEY')
+        api_key = self.config.config.api.gemini_api_key
         if not api_key:
-            raise ValueError("GEMINI_API_KEY environment variable not set")
-        self.client = genai.Client(api_key=api_key)  # Use genai.Client as per the documentation example
-        self.embedding_model = "gemini-embedding-exp-03-07"  # Use the standard embedding model
+            raise ValueError("GEMINI_API_KEY not configured. Set it via environment variable or configuration file.")
+        self.client = genai.Client(api_key=api_key)
+        self.embedding_model = self.config.config.embedding.model
     
     def generate_embedding(self, text: str, task_type: str = "SEMANTIC_SIMILARITY") -> List[float]:
         """

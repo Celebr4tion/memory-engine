@@ -19,6 +19,7 @@ from gremlin_python.process.strategies import * # noqa: F403
 from gremlin_python.process.traversal import T 
 
 from .graph_storage_adapter import GraphStorageAdapter
+from memory_core.config import get_config
 
 
 class JanusGraphStorage(GraphStorageAdapter):
@@ -28,17 +29,18 @@ class JanusGraphStorage(GraphStorageAdapter):
     This class provides methods to manage nodes and edges in a JanusGraph database.
     """
 
-    def __init__(self, host='localhost', port=8182, traversal_source='g'):
+    def __init__(self, host=None, port=None, traversal_source='g'):
         """
         Initialize JanusGraphStorage with connection details.
         
         Args:
-            host: The hostname or IP address of the JanusGraph server
-            port: The port number of the JanusGraph server
+            host: The hostname or IP address of the JanusGraph server (optional, uses config if not provided)
+            port: The port number of the JanusGraph server (optional, uses config if not provided)
             traversal_source: The traversal source to use for connecting to JanusGraph
         """
-        self.host = host
-        self.port = port
+        self.config = get_config()
+        self.host = host or self.config.config.janusgraph.host
+        self.port = port or self.config.config.janusgraph.port
         self.traversal_source = traversal_source
         self._client = None
         self.g = None
@@ -58,16 +60,17 @@ class JanusGraphStorage(GraphStorageAdapter):
             return True
 
         try:
-            print(f"Connecting to JanusGraph at ws://{self.host}:{self.port}/gremlin...")
+            connection_url = self.config.config.janusgraph.connection_url
+            print(f"Connecting to JanusGraph at {connection_url}...")
             
             # Create remote traversal with a connection object - this is synchronous
             remote_connection = DriverRemoteConnection(
-                f'ws://{self.host}:{self.port}/gremlin',
+                connection_url,
                 self.traversal_source
             )
             self.g = traversal().withRemote(remote_connection)
             
-            print(f"Connected to JanusGraph at ws://{self.host}:{self.port}/gremlin")
+            print(f"Connected to JanusGraph at {connection_url}")
             return True
                 
         except Exception as e:

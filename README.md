@@ -31,23 +31,26 @@ Memory Engine is a comprehensive knowledge management platform that transforms u
 git clone <repository-url>
 cd memory-engine
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
+# Run automated setup
+./scripts/setup.sh
 ```
+
+The setup script will:
+- Check Python version compatibility
+- Create virtual environment
+- Install dependencies
+- Create configuration template
+- Set up development tools
 
 ### 2. Environment Setup
 
 ```bash
-# Set required API key
-export GEMINI_API_KEY="your-gemini-api-key"
+# Edit the .env file created by setup
+# Set your Gemini API key
+GEMINI_API_KEY="your-gemini-api-key"
 
-# Optional: customize database hosts (defaults to localhost)
-export JANUSGRAPH_HOST="localhost"
-export MILVUS_HOST="localhost"
+# Optional: Set environment (defaults to development)
+ENVIRONMENT="development"
 ```
 
 ### 3. Start Infrastructure
@@ -91,11 +94,13 @@ print(f"Content: {retrieved.content}")
 
 | Document | Description |
 |----------|-------------|
-| [📋 Setup Guide](docs/setup_guide.md) | Complete installation and configuration instructions |
-| [⚙️ Configuration](docs/configuration.md) | Environment variables and configuration options |
-| [🏗️ Architecture](docs/architecture.md) | System architecture and component interactions |
-| [📡 API Reference](docs/api_reference.md) | Complete API documentation including MCP interface |
-| [🔧 Troubleshooting](docs/troubleshooting.md) | Common issues and solutions |
+| [📋 Setup Guide](docs/developer/setup_guide.md) | Complete installation and configuration instructions |
+| [⚙️ Configuration](docs/user/configuration.md) | Basic configuration and environment setup |
+| [🔧 Advanced Configuration](docs/developer/configuration_system.md) | Advanced configuration system |
+| [🏗️ Architecture](docs/developer/architecture.md) | System architecture and component interactions |
+| [🏗️ Project Structure](ARCHITECTURE.md) | Detailed project organization and structure |
+| [📡 API Reference](docs/api/api_reference.md) | Complete API documentation including MCP interface |
+| [🔧 Troubleshooting](docs/user/troubleshooting.md) | Common issues and solutions |
 
 ## 💻 Examples
 
@@ -119,7 +124,36 @@ python examples/knowledge_extraction.py
 
 # Test MCP interface
 python examples/mcp_client_example.py
+
+# Try configuration system
+python examples/config_example.py
 ```
+
+## 🧪 Testing
+
+Memory Engine includes a comprehensive test suite organized by type:
+
+```bash
+# Run all tests
+./scripts/test.sh all
+
+# Run only unit tests (fast, no external dependencies)
+./scripts/test.sh unit
+
+# Run integration tests (requires JanusGraph and Milvus)
+./scripts/test.sh integration
+
+# Run tests with coverage report
+./scripts/test.sh coverage
+
+# Run specific test file
+./scripts/test.sh --file config_manager
+```
+
+Test organization:
+- **Unit Tests** (`tests/unit/`): Fast, isolated tests
+- **Integration Tests** (`tests/integration/`): Tests requiring external services
+- **Component Tests** (`tests/`): End-to-end component testing
 
 ## 🏗️ Architecture
 

@@ -1,0 +1,61 @@
+# Testing Environment Configuration
+# Optimized for running tests
+
+environment: testing
+debug: false
+testing: true
+
+# In-memory database for tests
+database:
+  url: "sqlite:///:memory:"
+  pool_size: 1
+
+# Test JanusGraph instance
+janusgraph:
+  host: "localhost"
+  port: 8182
+  use_ssl: false
+  connection_timeout: 10
+  max_retry_attempts: 1
+
+# Test Milvus instance
+vector_store:
+  milvus:
+    host: "localhost"
+    port: 19530
+    collection_name: "knowledge_vectors_test"
+    dimension: 768
+
+# Minimal logging for tests
+logging:
+  level: "WARNING"
+  enable_console: false
+  file_path: null
+
+# Disable features not needed for testing
+versioning:
+  enable_versioning: false
+  enable_snapshots: false
+
+# Minimal security for tests
+security:
+  encrypt_at_rest: false
+  tls_enabled: false
+
+# Minimal performance settings for tests
+performance:
+  workers: 1
+  max_memory_usage: 268435456  # 256MB
+  cache_size: 100
+  batch_processing_size: 10
+
+# Fast LLM responses for tests
+llm:
+  timeout: 10
+  max_retries: 1
+
+# Fast embedding for tests
+embedding:
+  batch_size: 10
+  timeout: 10
+  max_retries: 1

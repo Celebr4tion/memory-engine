@@ -7,13 +7,13 @@ with content, tags, metadata, and source information.
 
 import json
 import logging
-import os
 import time
 from typing import List, Dict, Any, Optional
 
 from google import genai
 # Import types for GenerationConfig
 from google.genai import types
+from memory_core.config import get_config
 
 class AdvancedExtractor:
     """
@@ -30,13 +30,14 @@ class AdvancedExtractor:
         Sets up the Gemini client for LLM interactions.
         """
         self.logger = logging.getLogger(__name__)
+        self.config = get_config()
         
         # Initialize Gemini client using genai.Client
-        api_key = os.getenv('GEMINI_API_KEY')
+        api_key = self.config.config.api.gemini_api_key
         if not api_key:
-            raise ValueError("GEMINI_API_KEY environment variable not set")
+            raise ValueError("GEMINI_API_KEY not configured. Set it via environment variable or configuration file.")
         self.client = genai.Client(api_key=api_key) 
-        self.model = "gemini-2.5-flash-preview-04-17"
+        self.model = self.config.config.llm.model
         
     def _create_prompt(self, raw_text: str) -> str:
         """
@@ -100,10 +101,10 @@ class AdvancedExtractor:
             
             # Create GenerateContentConfig object
             gen_config = types.GenerateContentConfig(
-                temperature=0.4,
+                temperature=self.config.config.llm.temperature,
                 top_p=0.95,
                 top_k=40,
-                max_output_tokens=8192,
+                max_output_tokens=self.config.config.llm.max_tokens,
                 # Ensure response is JSON
                 response_mime_type="application/json" 
             )

@@ -1,0 +1,77 @@
+# Production Environment Configuration
+# Optimized for production deployment
+
+environment: production
+debug: false
+
+# Production database
+database:
+  url: "postgresql://user:password@prod-db:5432/memory_engine"
+  pool_size: 20
+  max_overflow: 40
+  pool_timeout: 60
+  pool_recycle: 7200
+
+# Production JanusGraph cluster
+janusgraph:
+  host: "prod-janusgraph"
+  port: 8182
+  use_ssl: true
+  connection_timeout: 60
+  max_retry_attempts: 5
+  retry_delay: 2.0
+
+# Production Milvus cluster
+vector_store:
+  milvus:
+    host: "prod-milvus"
+    port: 19530
+    collection_name: "knowledge_vectors"
+    nlist: 2048
+    nprobe: 20
+
+# Production logging
+logging:
+  level: "INFO"
+  enable_console: false
+  file_path: "/var/log/memory_engine/production.log"
+  max_file_size: 104857600  # 100MB
+  backup_count: 20
+
+# Full security for production
+security:
+  encrypt_at_rest: true
+  tls_enabled: true
+  max_login_attempts: 3
+  session_timeout: 1800  # 30 minutes
+
+# High performance settings
+performance:
+  workers: 8
+  worker_timeout: 600
+  max_memory_usage: 4294967296  # 4GB
+  cache_size: 5000
+  batch_processing_size: 200
+
+# Conservative LLM settings for production
+llm:
+  temperature: 0.3
+  timeout: 120
+  max_retries: 5
+  retry_delay: 2.0
+
+# Robust embedding settings
+embedding:
+  batch_size: 64
+  timeout: 60
+  max_retries: 5
+  retry_delay: 2.0
+
+# Regular versioning for production
+versioning:
+  enable_versioning: true
+  enable_snapshots: true
+  changes_threshold: 500
+  snapshot_interval: 3600  # 1 hour
+  max_revisions: 5000
+  compression_enabled: true

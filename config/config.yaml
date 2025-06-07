@@ -1,0 +1,97 @@
+# Base Configuration for Memory Engine
+# This file contains default configuration values that apply to all environments
+
+# Application Settings
+environment: development
+debug: false
+
+# Database Configuration
+database:
+  url: "sqlite:///memory_engine.db"
+  pool_size: 10
+  max_overflow: 20
+  pool_timeout: 30
+  pool_recycle: 3600
+
+# JanusGraph Configuration
+janusgraph:
+  host: "localhost"
+  port: 8182
+  use_ssl: false
+  connection_timeout: 30
+  max_retry_attempts: 3
+  retry_delay: 1.0
+
+# Vector Store Configuration
+vector_store:
+  type: "milvus"
+  dimension: 768
+  similarity_threshold: 0.7
+  max_results: 100
+  milvus:
+    host: "localhost"
+    port: 19530
+    collection_name: "knowledge_vectors"
+    dimension: 768
+    index_type: "IVF_FLAT"
+    metric_type: "L2"
+    nlist: 1024
+    nprobe: 10
+
+# Embedding Configuration
+embedding:
+  model: "text-embedding-004"
+  dimension: 768
+  batch_size: 32
+  max_retries: 3
+  retry_delay: 1.0
+  timeout: 30
+
+# LLM Configuration
+llm:
+  model: "gemini-2.0-flash-thinking-exp"
+  fallback_model: "gemini-2.0-flash-exp"
+  temperature: 0.7
+  max_tokens: 4096
+  timeout: 60
+  max_retries: 3
+  retry_delay: 1.0
+
+# API Configuration (API keys loaded from environment variables)
+api:
+  gemini_api_key: null  # Set via GEMINI_API_KEY environment variable
+  google_api_key: null  # Set via GOOGLE_API_KEY environment variable
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_path: null
+  max_file_size: 10485760  # 10MB
+  backup_count: 5
+  enable_console: true
+
+# Versioning Configuration
+versioning:
+  enable_versioning: true
+  enable_snapshots: true
+  changes_threshold: 100
+  snapshot_interval: 3600
+  max_revisions: 1000
+  compression_enabled: true
+
+# Security Configuration
+security:
+  encrypt_at_rest: false
+  encryption_key: null  # Set via ENCRYPTION_KEY environment variable
+  tls_enabled: false
+  max_login_attempts: 5
+  session_timeout: 3600
+
+# Performance Configuration
+performance:
+  workers: 4
+  worker_timeout: 300
+  max_memory_usage: 1073741824  # 1GB
+  cache_size: 1000
+  batch_processing_size: 100
