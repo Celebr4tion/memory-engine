@@ -1183,7 +1183,8 @@ class EnhancedMemoryEngineMCP:
                     properties = []
                     for key, value in node.items():
                         if isinstance(value, str):
-                            properties.append(f"{key}: '{value.replace("'", "\\'")}'"")
+                            escaped_value = value.replace("'", "\\'")
+                            properties.append(f"{key}: '{escaped_value}'")
                         else:
                             properties.append(f"{key}: {value}")
                     cypher += ", ".join(properties) + "})"
