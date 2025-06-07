@@ -45,7 +45,7 @@ class JanusGraphStorage(GraphStorageAdapter):
         self._loop = None
         self.logger = logging.getLogger(__name__)
 
-    async def _async_connect(self):
+    def _sync_connect(self):
         """
         Establish a connection to the JanusGraph database.
         
@@ -53,66 +53,28 @@ class JanusGraphStorage(GraphStorageAdapter):
             ConnectionError: If unable to connect to JanusGraph
         """
         # Don't reconnect if already connected
-        if self._client and getattr(self._client, 'is_connected', False):
+        if self.g is not None:
             print("Already connected to JanusGraph.")
             return True
 
         try:
-            # Get or create event loop
-            try:
-                self._loop = asyncio.get_running_loop()
-                print(f"Using existing event loop: {self._loop}")
-            except RuntimeError:
-                self._loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(self._loop)
-                print(f"Created new event loop: {self._loop}")
+            print(f"Connecting to JanusGraph at ws://{self.host}:{self.port}/gremlin...")
             
-            # Use GraphSONMessageSerializer from gremlin_python
-            message_serializer = serializer.GraphSONMessageSerializer()
+            # Create remote traversal with a connection object - this is synchronous
+            remote_connection = DriverRemoteConnection(
+                f'ws://{self.host}:{self.port}/gremlin',
+                self.traversal_source
+            )
+            self.g = traversal().withRemote(remote_connection)
             
-            try:
-                print(f"Connecting to JanusGraph at ws://{self.host}:{self.port}/gremlin...")
-                # Create the client
-                self._client = client.Client(
-                    f'ws://{self.host}:{self.port}/gremlin',
-                    self.traversal_source,
-                    message_serializer=message_serializer,
-                    loop=self._loop,
-                    timeout=10  # Reasonable timeout
-                )
-                
-                # Create remote traversal with a connection object
-                print("Creating remote traversal...")
-                remote_connection = DriverRemoteConnection(
-                    f'ws://{self.host}:{self.port}/gremlin',
-                    self.traversal_source
-                )
-                self.g = traversal().withRemote(remote_connection)
-                
-                print(f"Connected to JanusGraph at ws://{self.host}:{self.port}/gremlin")
-                return True
-                
-            except Exception as e:
-                print(f"Failed to connect to JanusGraph: {e}")
-                import traceback
-                traceback.print_exc()
-                
-                if self._client:
-                    try:
-                        # Close without awaiting to avoid event loop issues
-                        self._client.close()
-                    except Exception:
-                        pass
-                    
-                self._client = None
-                self.g = None
-                raise ConnectionError(f"Could not connect to JanusGraph: {e}")
+            print(f"Connected to JanusGraph at ws://{self.host}:{self.port}/gremlin")
+            return True
                 
         except Exception as e:
-            print(f"Connection error: {e}")
+            print(f"Failed to connect to JanusGraph: {e}")
             import traceback
             traceback.print_exc()
-            self._client = None
+            
             self.g = None
             raise ConnectionError(f"Could not connect to JanusGraph: {e}")
 
@@ -140,7 +102,7 @@ class JanusGraphStorage(GraphStorageAdapter):
                 self._client = None
                 self.g = None
 
-    async def _async_create_node(self, *args, **kwargs):
+    def _sync_create_node(self, *args, **kwargs):
         """
         Create a node in the JanusGraph database.
         
@@ -164,7 +126,7 @@ class JanusGraphStorage(GraphStorageAdapter):
         skip_connect = kwargs.pop('_skip_connect', False)
         
         if not skip_connect:
-            await self._async_connect()  # Ensure connection
+            self._sync_connect()  # Ensure connection
             
         if not self.g:
             raise ConnectionError("Not connected to JanusGraph")
@@ -188,7 +150,7 @@ class JanusGraphStorage(GraphStorageAdapter):
             vertex = vertex.property('node_id', node_id)
             for key, value in properties.items():
                 vertex = vertex.property(key, value)
-            new_vertex = await vertex.next()
+            new_vertex = vertex.next()
             print(f"Node created with graph ID: {new_vertex.id}, node_id: {node_id}")
             return node_id
         except Exception as e:
@@ -549,10 +511,9 @@ class JanusGraphStorage(GraphStorageAdapter):
 
     # Non-async wrapper methods for backward compatibility
     def connect(self):
-        """Synchronous wrapper for _async_connect."""
+        """Synchronous connect method."""
         try:
-            # Call the method to get a coroutine
-            return self._run_async_in_sync_context(self._async_connect())
+            return self._sync_connect()
         except Exception as e:
             print(f"Error in connect: {e}")
             return False
@@ -586,8 +547,8 @@ class JanusGraphStorage(GraphStorageAdapter):
             raise
             
     def create_node(self, *args, **kwargs):
-        """Non-async wrapper for create_node()."""
-        return self._create_sync_wrapper(self._async_create_node, "create_node", *args, **kwargs)
+        """Synchronous create_node method."""
+        return self._sync_create_node(*args, **kwargs)
         
     def get_node(self, node_id):
         """Non-async wrapper for get_node()."""
