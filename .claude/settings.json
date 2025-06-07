@@ -1,0 +1,36 @@
+{
+  "tools": {
+    "bash": {
+      "enabled": true,
+      "timeout": 300000
+    },
+    "edit": {
+      "enabled": true
+    },
+    "read": {
+      "enabled": true
+    },
+    "write": {
+      "enabled": true
+    },
+    "glob": {
+      "enabled": true
+    },
+    "grep": {
+      "enabled": true
+    }
+  },
+  "project_preferences": {
+    "auto_commit": false,
+    "test_after_changes": true,
+    "use_conventional_commits": true,
+    "python_formatter": "black",
+    "javascript_formatter": "prettier",
+    "default_python_version": "3.13"
+  },
+  "development_workflow": {
+    "preferred_approach": "explore, plan, code, test, commit",
+    "always_run_tests": true,
+    "always_check_linting": true
+  }
+}

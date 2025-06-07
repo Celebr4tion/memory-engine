@@ -1,0 +1,79 @@
+#!/bin/bash
+# Custom command: /docker
+# Description: Manage Docker services for Memory Engine
+
+set -e
+
+ACTION=${1:-status}
+
+echo "🐳 Memory Engine Docker Management"
+echo "================================="
+
+case $ACTION in
+    "start"|"up")
+        echo "🚀 Starting Docker services..."
+        sudo docker-compose -f docker/docker-compose.yml up -d
+        echo "⏳ Waiting for services to initialize..."
+        sleep 15
+        sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+        ;;
+    
+    "stop"|"down")
+        echo "🛑 Stopping Docker services..."
+        sudo docker-compose -f docker/docker-compose.yml down
+        ;;
+    
+    "restart")
+        echo "🔄 Restarting Docker services..."
+        sudo docker-compose -f docker/docker-compose.yml restart
+        echo "⏳ Waiting for services to restart..."
+        sleep 15
+        sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+        ;;
+    
+    "status"|"ps")
+        echo "📊 Docker service status:"
+        sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(janusgraph|milvus|etcd|minio)" || echo "No Memory Engine services running"
+        ;;
+    
+    "logs")
+        SERVICE=${2:-janusgraph}
+        echo "📋 Showing logs for $SERVICE..."
+        sudo docker logs $SERVICE --tail 20
+        ;;
+    
+    "health")
+        echo "🏥 Checking service health..."
+        echo "JanusGraph:"
+        python test_janusgraph_connection.py
+        echo ""
+        echo "Milvus:"
+        python -c "
+from pymilvus import connections
+try:
+    connections.connect('default', host='localhost', port='19530')
+    print('✅ Milvus connection successful')
+except Exception as e:
+    print(f'❌ Milvus connection failed: {e}')
+"
+        ;;
+    
+    "clean")
+        echo "🧹 Cleaning up Docker resources..."
+        sudo docker-compose -f docker/docker-compose.yml down -v
+        sudo docker system prune -f
+        ;;
+    
+    *)
+        echo "Usage: /docker [start|stop|restart|status|logs [service]|health|clean]"
+        echo ""
+        echo "Commands:"
+        echo "  start/up    - Start all services"
+        echo "  stop/down   - Stop all services"
+        echo "  restart     - Restart all services"
+        echo "  status/ps   - Show running services"
+        echo "  logs [svc]  - Show logs (default: janusgraph)"
+        echo "  health      - Test service connectivity"
+        echo "  clean       - Stop and remove all containers/volumes"
+        ;;
+esac

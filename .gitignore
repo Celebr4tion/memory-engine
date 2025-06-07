@@ -1,3 +1,6 @@
 __pycache__
 .venv
 .env
+# Keep Claude Code configuration files in version control
+# .claude
+# CLAUDE.md

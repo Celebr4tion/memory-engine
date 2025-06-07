@@ -1,0 +1,43 @@
+#!/bin/bash
+# Custom command: /test
+# Description: Run comprehensive tests with proper environment setup
+
+set -e
+
+echo "🧪 Memory Engine Test Suite"
+echo "=========================="
+
+# Check if virtual environment is activated
+if [[ "$VIRTUAL_ENV" == "" ]]; then
+    echo "⚠️  Activating virtual environment..."
+    source .venv/bin/activate
+fi
+
+# Check Docker services
+echo "🐳 Checking Docker services..."
+if ! sudo docker ps | grep -q "janusgraph\|milvus"; then
+    echo "❌ Docker services not running. Starting them..."
+    sudo docker-compose -f docker/docker-compose.yml up -d
+    echo "⏳ Waiting for services to start..."
+    sleep 15
+fi
+
+# Run connectivity tests first
+echo "🔌 Testing connectivity..."
+python test_janusgraph_connection.py
+python -m pytest tests/test_milvus_connection.py -v --tb=short
+
+# Run unit tests
+echo "🏃 Running unit tests..."
+python -m pytest tests/ -v --tb=short -k "not Integration"
+
+# Run integration tests if API key is available
+if [[ -n "$GEMINI_API_KEY" || -n "$GOOGLE_API_KEY" ]]; then
+    echo "🌐 Running integration tests..."
+    python -m pytest tests/test_embedding_manager.py::TestEmbeddingManagerIntegration -v --tb=short
+    python -m pytest tests/test_advanced_extractor.py::TestAdvancedExtractorIntegration -v --tb=short
+else
+    echo "⚠️  Skipping integration tests (no API key found)"
+fi
+
+echo "✅ Test suite completed!"

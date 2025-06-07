@@ -1,0 +1,88 @@
+#!/bin/bash
+# Custom command: /setup
+# Description: Setup development environment for Memory Engine
+
+set -e
+
+echo "🚀 Memory Engine Development Setup"
+echo "=================================="
+
+# Check if we're in the right directory
+if [[ ! -f "requirements.txt" ]]; then
+    echo "❌ Error: Not in Memory Engine project directory"
+    exit 1
+fi
+
+# Create virtual environment if it doesn't exist
+if [[ ! -d ".venv" ]]; then
+    echo "🐍 Creating virtual environment..."
+    python -m venv .venv
+fi
+
+# Activate virtual environment
+echo "🔄 Activating virtual environment..."
+source .venv/bin/activate
+
+# Install dependencies
+echo "📦 Installing dependencies..."
+pip install -r requirements.txt
+
+# Check for .env file
+if [[ ! -f ".env" ]]; then
+    echo "⚠️  .env file not found. Creating template..."
+    cat > .env << 'EOF'
+# API Keys
+GOOGLE_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Model Configuration
+EMBEDDING_MODEL=text-embedding-004
+LLM_MODEL=gemini-2.0-flash-thinking-exp
+FALLBACK_MODEL=gemini-2.0-flash-exp
+
+# JanusGraph Configuration
+JANUSGRAPH_HOST=localhost
+JANUSGRAPH_PORT=8182
+JANUSGRAPH_USE_SSL=false
+
+# Milvus Configuration  
+MILVUS_HOST=localhost
+MILVUS_PORT=19530
+MILVUS_USER=
+MILVUS_PASSWORD=
+
+# Vector Store Configuration
+VECTOR_STORE_TYPE=milvus
+EMBEDDING_DIMENSION=768
+COLLECTION_NAME=knowledge_vectors
+
+# Database Configuration
+DATABASE_URL=sqlite:///memory_engine.db
+
+# Logging
+LOG_LEVEL=INFO
+
+# Development/Testing
+ENVIRONMENT=development
+EOF
+    echo "📝 Please edit .env file with your actual API keys"
+fi
+
+# Start Docker services
+echo "🐳 Starting Docker services..."
+sudo docker-compose -f docker/docker-compose.yml up -d
+
+# Wait for services to be ready
+echo "⏳ Waiting for services to start..."
+sleep 20
+
+# Test connectivity
+echo "🔌 Testing connectivity..."
+python test_janusgraph_connection.py
+
+echo "✅ Development environment setup complete!"
+echo ""
+echo "Next steps:"
+echo "1. Edit .env file with your actual API keys"
+echo "2. Run '/test' to verify everything works"
+echo "3. Try 'python examples/basic_usage.py' for a demo"
