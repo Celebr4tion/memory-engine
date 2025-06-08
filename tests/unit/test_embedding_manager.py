@@ -40,7 +40,7 @@ class TestEmbeddingManagerClass(unittest.TestCase):
         self.sample_node_id = "test_node_1"
         
         # Mock embedding result
-        self.mock_embedding = np.random.rand(3072).tolist()  # Gemini embedding dimension
+        self.mock_embedding = np.random.rand(768).tolist()  # text-embedding-004 dimension
     
     def tearDown(self):
         """Clean up after each test method."""
@@ -57,15 +57,20 @@ class TestEmbeddingManagerClass(unittest.TestCase):
         # Generate embedding
         embedding = self.embedding_manager.generate_embedding(self.sample_text)
         
-        # Verify API call
-        self.mock_client.models.embed_content.assert_called_once_with(
-            model='gemini-embedding-exp-03-07',
-            contents=self.sample_text,
-            config={'task_type': 'SEMANTIC_SIMILARITY'}
-        )
+        # Verify API call - check that it was called with the correct model and format
+        self.mock_client.models.embed_content.assert_called_once()
+        call_args = self.mock_client.models.embed_content.call_args
+        
+        # Verify the model and contents
+        self.assertEqual(call_args[1]['model'], 'text-embedding-004')
+        self.assertEqual(call_args[1]['contents'], self.sample_text)
+        
+        # Verify config is a typed object with task_type
+        config = call_args[1]['config']
+        self.assertEqual(config.task_type, 'SEMANTIC_SIMILARITY')
         
         # Verify result
-        self.assertEqual(len(embedding), 3072)
+        self.assertEqual(len(embedding), 768)
         self.assertEqual(embedding, self.mock_embedding)
     
     def test_generate_embedding_empty_text(self):

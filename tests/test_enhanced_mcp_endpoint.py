@@ -17,48 +17,50 @@ from memory_core.model.knowledge_node import KnowledgeNode
 from memory_core.model.relationship import Relationship
 
 
+# Global fixtures available to all test classes
+@pytest.fixture
+def mock_engine():
+    """Mock KnowledgeEngine for testing."""
+    engine = Mock()
+    engine.storage = Mock()
+    engine.revision_manager = Mock()
+    return engine
+
+@pytest.fixture
+def mock_vector_store():
+    """Mock vector store for testing."""
+    vector_store = Mock()
+    vector_store.connect.return_value = True
+    return vector_store
+
+@pytest.fixture
+def mock_embedding_manager():
+    """Mock embedding manager for testing."""
+    manager = Mock()
+    manager.search_similar_nodes.return_value = ["node1", "node2", "node3"]
+    return manager
+
+@pytest.fixture
+def enhanced_mcp(mock_engine, mock_vector_store, mock_embedding_manager):
+    """Create EnhancedMemoryEngineMCP instance with mocked dependencies."""
+    with patch('memory_core.mcp_integration.enhanced_mcp_endpoint.KnowledgeEngine') as mock_ke, \
+         patch('memory_core.mcp_integration.enhanced_mcp_endpoint.VectorStoreMilvus') as mock_vs, \
+         patch('memory_core.mcp_integration.enhanced_mcp_endpoint.EmbeddingManager') as mock_em:
+        
+        mock_ke.return_value = mock_engine
+        mock_vs.return_value = mock_vector_store
+        mock_em.return_value = mock_embedding_manager
+        
+        mcp = EnhancedMemoryEngineMCP()
+        mcp.engine = mock_engine
+        mcp.vector_store = mock_vector_store
+        mcp.embedding_manager = mock_embedding_manager
+        
+        return mcp
+
+
 class TestEnhancedMCPEndpoint:
     """Test suite for Enhanced MCP endpoint functionality."""
-    
-    @pytest.fixture
-    def mock_engine(self):
-        """Mock KnowledgeEngine for testing."""
-        engine = Mock()
-        engine.storage = Mock()
-        engine.revision_manager = Mock()
-        return engine
-    
-    @pytest.fixture
-    def mock_vector_store(self):
-        """Mock vector store for testing."""
-        vector_store = Mock()
-        vector_store.connect.return_value = True
-        return vector_store
-    
-    @pytest.fixture
-    def mock_embedding_manager(self):
-        """Mock embedding manager for testing."""
-        manager = Mock()
-        manager.search_similar_nodes.return_value = ["node1", "node2", "node3"]
-        return manager
-    
-    @pytest.fixture
-    def enhanced_mcp(self, mock_engine, mock_vector_store, mock_embedding_manager):
-        """Create EnhancedMemoryEngineMCP instance with mocked dependencies."""
-        with patch('memory_core.mcp_integration.enhanced_mcp_endpoint.KnowledgeEngine') as mock_ke, \
-             patch('memory_core.mcp_integration.enhanced_mcp_endpoint.VectorStoreMilvus') as mock_vs, \
-             patch('memory_core.mcp_integration.enhanced_mcp_endpoint.EmbeddingManager') as mock_em:
-            
-            mock_ke.return_value = mock_engine
-            mock_vs.return_value = mock_vector_store
-            mock_em.return_value = mock_embedding_manager
-            
-            mcp = EnhancedMemoryEngineMCP()
-            mcp.engine = mock_engine
-            mcp.vector_store = mock_vector_store
-            mcp.embedding_manager = mock_embedding_manager
-            
-            return mcp
 
 
 class TestAdvancedGraphQueries:

@@ -24,7 +24,8 @@ def test_janusgraph_minimal():
         s.close()
     except socket.error as e:
         print(f"Socket connection to {host}:{port} failed: {e}")
-        return False
+        s.close()
+        assert False, f"Socket connection to {host}:{port} failed: {e}"
     finally:
         s.close()
     
@@ -34,8 +35,11 @@ def test_janusgraph_minimal():
     
     # Success if we got here
     print("Test successful: Connection object can be created.")
-    return True
+    assert True
 
 if __name__ == "__main__":
-    result = test_janusgraph_minimal()
-    sys.exit(0 if result else 1) 
+    try:
+        test_janusgraph_minimal()
+        sys.exit(0)
+    except AssertionError:
+        sys.exit(1) 

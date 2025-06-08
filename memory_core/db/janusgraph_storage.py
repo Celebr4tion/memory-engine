@@ -77,9 +77,17 @@ class JanusGraphStorage(GraphStorageAdapter):
             print(f"Failed to connect to JanusGraph: {e}")
             import traceback
             traceback.print_exc()
-            
             self.g = None
-            raise ConnectionError(f"Could not connect to JanusGraph: {e}")
+            raise
+
+    async def _async_connect(self):
+        """
+        Async wrapper around the sync connect method.
+        
+        Raises:
+            ConnectionError: If unable to connect to JanusGraph
+        """
+        return self._sync_connect()
 
     async def _async_close(self):
         """Close the connection to the JanusGraph database."""
@@ -141,6 +149,13 @@ class JanusGraphStorage(GraphStorageAdapter):
             node_id = str(uuid.uuid4())
             label = "KnowledgeNode"
             properties = node_data
+            
+            # Validate required fields
+            required_fields = ['content', 'source', 'creation_timestamp', 'rating_richness', 
+                             'rating_truthfulness', 'rating_stability']
+            missing_fields = [field for field in required_fields if field not in properties]
+            if missing_fields:
+                raise ValueError(f"Missing required fields: {missing_fields}")
         elif len(args) == 3:
             # Option 2: Explicit parameters
             node_id, label, properties = args
@@ -180,7 +195,7 @@ class JanusGraphStorage(GraphStorageAdapter):
         if not self.g:
             raise ConnectionError("Not connected to JanusGraph")
         try:
-            node_data_list = await self.g.V().has('node_id', node_id).value_map(True).to_list()
+            node_data_list = self.g.V().has('node_id', node_id).value_map(True).to_list()
             if not node_data_list:
                 return None
             node_data = node_data_list[0]  # Take the first result
@@ -222,7 +237,7 @@ class JanusGraphStorage(GraphStorageAdapter):
             vertex = self.g.V().has('node_id', node_id)
             for key, value in properties.items():
                 vertex = vertex.property(key, value)
-            await vertex.iterate()
+            vertex.iterate()
             print(f"Node {node_id} updated.")
             return True
         except Exception as e:
@@ -246,7 +261,7 @@ class JanusGraphStorage(GraphStorageAdapter):
         if not self.g:
             raise ConnectionError("Not connected to JanusGraph")
         try:
-            await self.g.V().has('node_id', node_id).drop().iterate()
+            self.g.V().has('node_id', node_id).drop().iterate()
             print(f"Node {node_id} deleted.")
             return True
         except Exception as e:
@@ -282,13 +297,19 @@ class JanusGraphStorage(GraphStorageAdapter):
             to_vertex = self.g.V().has('node_id', to_node_id)
 
             # Use snake_case methods: add_e, from_, to
+            # Validate required fields in properties
+            required_fields = ['timestamp', 'confidence_score', 'version']
+            missing_fields = [field for field in required_fields if field not in properties]
+            if missing_fields:
+                raise ValueError(f"Missing required edge fields: {missing_fields}")
+            
             edge_traversal = self.g.add_e(relation_type).from_(from_vertex).to(to_vertex)
             edge_traversal = edge_traversal.property('edge_id', edge_id)
 
             for key, value in properties.items():
                 edge_traversal = edge_traversal.property(key, value)
 
-            new_edge = await edge_traversal.next()
+            new_edge = edge_traversal.next()
             print(f"Edge created with graph ID: {new_edge.id}, edge_id: {edge_id}")
             return edge_id
         except Exception as e:
@@ -312,14 +333,14 @@ class JanusGraphStorage(GraphStorageAdapter):
         if not self.g:
             raise ConnectionError("Not connected to JanusGraph")
         try:
-            edge_data_list = await self.g.E().has('edge_id', edge_id).value_map(True).to_list()
+            edge_data_list = self.g.E().has('edge_id', edge_id).value_map(True).to_list()
             if not edge_data_list:
                 return None
             edge_data = edge_data_list[0]
 
             # Get the source and target node IDs using 'node_id' property
-            out_node_id_list = await self.g.E().has('edge_id', edge_id).out_v().values('node_id').to_list()
-            in_node_id_list = await self.g.E().has('edge_id', edge_id).in_v().values('node_id').to_list()
+            out_node_id_list = self.g.E().has('edge_id', edge_id).out_v().values('node_id').to_list()
+            in_node_id_list = self.g.E().has('edge_id', edge_id).in_v().values('node_id').to_list()
 
             if not out_node_id_list or not in_node_id_list:
                  print(f"Warning: Could not find source or target node for edge {edge_id}")
@@ -363,7 +384,7 @@ class JanusGraphStorage(GraphStorageAdapter):
             edge_traversal = self.g.E().has('edge_id', edge_id)
             for key, value in properties.items():
                 edge_traversal = edge_traversal.property(key, value)
-            await edge_traversal.iterate()
+            edge_traversal.iterate()
             print(f"Edge {edge_id} updated.")
             return True
         except Exception as e:
@@ -387,7 +408,7 @@ class JanusGraphStorage(GraphStorageAdapter):
         if not self.g:
             raise ConnectionError("Not connected to JanusGraph")
         try:
-            await self.g.E().has('edge_id', edge_id).drop().iterate()
+            self.g.E().has('edge_id', edge_id).drop().iterate()
             print(f"Edge {edge_id} deleted.")
             return True
         except Exception as e:
@@ -415,7 +436,7 @@ class JanusGraphStorage(GraphStorageAdapter):
             traversal = self.g.V().has('node_id', node_id).both_e()
             if relation_type:
                 traversal = traversal.has_label(relation_type)
-            neighbor_edges = await traversal.value_map(True).to_list()
+            neighbor_edges = traversal.value_map(True).to_list()
 
             neighbors = []
             for edge_data in neighbor_edges:
@@ -505,7 +526,7 @@ class JanusGraphStorage(GraphStorageAdapter):
         if not self.g:
             raise ConnectionError("Not connected to JanusGraph")
         try:
-            await self.g.V().drop().iterate()
+            self.g.V().drop().iterate()
             print("All data cleared from JanusGraph.")
             return True
         except Exception as e:
@@ -519,7 +540,7 @@ class JanusGraphStorage(GraphStorageAdapter):
             return self._sync_connect()
         except Exception as e:
             print(f"Error in connect: {e}")
-            return False
+            raise ConnectionError(f"Could not connect to JanusGraph: {e}") from e
         
     def close(self):
         """Synchronous wrapper for _async_close."""

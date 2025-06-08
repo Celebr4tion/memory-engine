@@ -20,12 +20,15 @@ def test_janusgraph_port():
         s.connect((host, port))
         print(f"SUCCESS: JanusGraph is running at {host}:{port}")
         s.close()
-        return True
+        assert True  # Connection successful
     except socket.error as e:
         print(f"FAILED: Cannot connect to JanusGraph at {host}:{port}: {e}")
         s.close()
-        return False
+        assert False, f"Cannot connect to JanusGraph at {host}:{port}: {e}"
 
 if __name__ == "__main__":
-    result = test_janusgraph_port()
-    sys.exit(0 if result else 1) 
+    try:
+        test_janusgraph_port()
+        sys.exit(0)
+    except AssertionError:
+        sys.exit(1) 

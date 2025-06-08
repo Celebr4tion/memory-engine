@@ -5,9 +5,10 @@ This test focuses just on establishing a connection and doing a simple traversal
 """
 import sys
 import asyncio
+import pytest
 from memory_core.db.janusgraph_storage import JanusGraphStorage
 
-async def test_janusgraph_basic():
+def test_janusgraph_basic():
     """Test basic JanusGraph connection and traversal."""
     host = 'localhost'
     port = 8182
@@ -19,7 +20,7 @@ async def test_janusgraph_basic():
     
     try:
         print("Attempting to connect...")
-        await storage._async_connect()
+        storage.connect()
         
         # If we got here, connection was established
         print("Connection established!")
@@ -34,7 +35,8 @@ async def test_janusgraph_basic():
                 # Wait for completion without using result()
                 # This avoids the internal loop.run_until_complete call
                 while not result_set._done.done():
-                    await asyncio.sleep(0.1)
+                    import time
+                    time.sleep(0.1)
                 
                 # Get results
                 if hasattr(result_set, '_result') and result_set._result:
@@ -48,9 +50,9 @@ async def test_janusgraph_basic():
         
         # Close connection
         print("Closing connection...")
-        await storage._async_close()
+        storage.close()
         print("Test completed successfully!")
-        return True
+        assert True
         
     except Exception as e:
         print(f"Connection failed: {e}")
@@ -60,17 +62,19 @@ async def test_janusgraph_basic():
         # Try to clean up
         try:
             if storage._client:
-                await storage._async_close()
+                storage.close()
         except:
             pass
         
-        return False
+        assert False, f"Connection failed: {e}"
 
 if __name__ == "__main__":
     try:
-        # Run the async test in a new event loop
-        result = asyncio.run(test_janusgraph_basic())
-        sys.exit(0 if result else 1)
+        # Run the test
+        test_janusgraph_basic()
+        sys.exit(0)
+    except AssertionError:
+        sys.exit(1)
     except KeyboardInterrupt:
         print("\nTest interrupted.")
         sys.exit(1) 

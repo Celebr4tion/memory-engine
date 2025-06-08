@@ -38,6 +38,27 @@ class AdvancedExtractor:
             raise ValueError("GEMINI_API_KEY not configured. Set it via environment variable or configuration file.")
         self.client = genai.Client(api_key=api_key) 
         self.model = self.config.config.llm.model
+    
+    def _clean_markdown_json(self, text: str) -> str:
+        """
+        Clean markdown code blocks from response text.
+        
+        Args:
+            text: Raw response text that might contain markdown
+            
+        Returns:
+            Cleaned JSON text
+        """
+        import re
+        
+        # Remove markdown code blocks (```json ... ```)
+        text = re.sub(r'^```(?:json)?\s*\n', '', text, flags=re.MULTILINE)
+        text = re.sub(r'\n```\s*$', '', text, flags=re.MULTILINE)
+        
+        # Remove leading/trailing whitespace
+        text = text.strip()
+        
+        return text
         
     def _create_prompt(self, raw_text: str) -> str:
         """
@@ -119,8 +140,12 @@ class AdvancedExtractor:
             # Extract JSON from response
             try:
                 # Access text directly from response.text
-                response_text = response.text 
-                # No need for manual JSON cleanup if response_mime_type is set
+                response_text = response.text
+                
+                # Clean up markdown code blocks if present
+                response_text = self._clean_markdown_json(response_text)
+                
+                # Parse JSON
                 knowledge_units = json.loads(response_text)
                 
                 # Validate the response structure

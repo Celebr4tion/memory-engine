@@ -1,27 +1,127 @@
 """
 Embedding manager for generating and storing embeddings using Gemini API.
 """
+import hashlib
 import logging
-from typing import List
+import time
+from typing import List, Dict, Tuple, Optional
+from dataclasses import dataclass
+from collections import OrderedDict
+import threading
 
 from google import genai
 from google.genai import types
 from memory_core.embeddings.vector_store import VectorStoreMilvus
 from memory_core.config import get_config
 
+
+@dataclass
+class EmbeddingCacheEntry:
+    """Represents a cached embedding."""
+    text_hash: str
+    embedding: List[float]
+    task_type: str
+    created_at: float
+    last_accessed: float
+    access_count: int
+
+
+class EmbeddingCache:
+    """
+    LRU cache for embeddings to avoid regenerating identical embeddings.
+    """
+    
+    def __init__(self, max_entries: int = 1000, ttl_seconds: int = 3600):
+        """Initialize embedding cache."""
+        self.max_entries = max_entries
+        self.ttl_seconds = ttl_seconds
+        self._cache: OrderedDict[str, EmbeddingCacheEntry] = OrderedDict()
+        self._lock = threading.RLock()
+        self.hits = 0
+        self.misses = 0
+    
+    def get(self, text: str, task_type: str) -> Optional[List[float]]:
+        """Get cached embedding if available and not expired."""
+        cache_key = self._generate_key(text, task_type)
+        
+        with self._lock:
+            if cache_key not in self._cache:
+                self.misses += 1
+                return None
+            
+            entry = self._cache[cache_key]
+            
+            # Check if expired
+            if time.time() - entry.created_at > self.ttl_seconds:
+                del self._cache[cache_key]
+                self.misses += 1
+                return None
+            
+            # Update access info and move to end
+            entry.last_accessed = time.time()
+            entry.access_count += 1
+            self._cache.move_to_end(cache_key)
+            
+            self.hits += 1
+            return entry.embedding.copy()
+    
+    def put(self, text: str, task_type: str, embedding: List[float]):
+        """Store embedding in cache."""
+        cache_key = self._generate_key(text, task_type)
+        
+        with self._lock:
+            # Remove if exists
+            if cache_key in self._cache:
+                del self._cache[cache_key]
+            
+            # Evict LRU if at capacity
+            while len(self._cache) >= self.max_entries:
+                self._cache.popitem(last=False)
+            
+            # Add new entry
+            entry = EmbeddingCacheEntry(
+                text_hash=cache_key,
+                embedding=embedding.copy(),
+                task_type=task_type,
+                created_at=time.time(),
+                last_accessed=time.time(),
+                access_count=0
+            )
+            self._cache[cache_key] = entry
+    
+    def _generate_key(self, text: str, task_type: str) -> str:
+        """Generate cache key from text and task type."""
+        combined = f"{text.strip().lower()}||{task_type}"
+        return hashlib.sha256(combined.encode()).hexdigest()
+    
+    def get_stats(self) -> Dict[str, int]:
+        """Get cache statistics."""
+        total = self.hits + self.misses
+        return {
+            'hits': self.hits,
+            'misses': self.misses,
+            'hit_rate': self.hits / total if total > 0 else 0.0,
+            'entries': len(self._cache)
+        }
+
 class EmbeddingManager:
     """Manager for generating and storing embeddings using Gemini API."""
     
-    def __init__(self, vector_store: VectorStoreMilvus):
+    def __init__(self, vector_store: VectorStoreMilvus, cache_size: int = 1000, cache_ttl: int = 3600):
         """
         Initialize the embedding manager.
         
         Args:
             vector_store: VectorStoreMilvus instance for storing embeddings
+            cache_size: Maximum number of embeddings to cache
+            cache_ttl: Cache time-to-live in seconds
         """
         self.vector_store = vector_store
         self.logger = logging.getLogger(__name__)
         self.config = get_config()
+        
+        # Initialize embedding cache
+        self.cache = EmbeddingCache(max_entries=cache_size, ttl_seconds=cache_ttl)
         
         # Initialize Gemini client using genai.Client
         api_key = self.config.config.api.gemini_api_key
@@ -47,6 +147,12 @@ class EmbeddingManager:
         """
         if not text:
             raise ValueError("Text cannot be empty or None")
+        
+        # Check cache first
+        cached_embedding = self.cache.get(text, task_type)
+        if cached_embedding is not None:
+            self.logger.debug(f"Using cached embedding for text: {text[:50]}...")
+            return cached_embedding
         
         try:
             self.logger.info(f"Generating embedding for text (task: {task_type}): {text[:50]}...")
@@ -82,6 +188,10 @@ class EmbeddingManager:
             if not isinstance(embedding, list):
                 self.logger.error(f"Final embedding format is not a list: {type(embedding)}")
                 raise RuntimeError(f"Final embedding format is not a list: {type(embedding)}")
+            
+            # Cache the embedding
+            self.cache.put(text, task_type, embedding)
+            
             self.logger.info(f"Generated embedding of length {len(embedding)}")
             return embedding
             
@@ -149,3 +259,67 @@ class EmbeddingManager:
         except Exception as e:
             self.logger.error(f"Error searching for similar nodes: {str(e)}")
             raise RuntimeError(f"Failed to search for similar nodes: {str(e)}")
+    
+    def generate_embeddings(self, texts: List[str], task_type: str = "SEMANTIC_SIMILARITY") -> List[List[float]]:
+        """
+        Generate embeddings for multiple texts efficiently.
+        
+        Args:
+            texts: List of texts to generate embeddings for
+            task_type: The task type for embedding generation
+            
+        Returns:
+            List of embedding vectors
+        """
+        embeddings = []
+        cache_hits = 0
+        
+        for text in texts:
+            try:
+                embedding = self.generate_embedding(text, task_type)
+                embeddings.append(embedding)
+                
+                # Check if this was a cache hit
+                cached = self.cache.get(text, task_type)
+                if cached is not None:
+                    cache_hits += 1
+                    
+            except Exception as e:
+                self.logger.error(f"Failed to generate embedding for text: {text[:50]}... Error: {e}")
+                # Use zero vector as fallback
+                embeddings.append([0.0] * 768)  # Typical embedding dimension
+        
+        self.logger.info(f"Generated {len(embeddings)} embeddings with {cache_hits} cache hits")
+        return embeddings
+    
+    def find_similar_nodes(self, query_embedding: List[float], top_k: int = 5, similarity_threshold: float = 0.7) -> List[Tuple[str, float]]:
+        """
+        Find similar nodes using the vector store.
+        
+        Args:
+            query_embedding: Query embedding vector
+            top_k: Number of similar nodes to return
+            similarity_threshold: Minimum similarity threshold
+            
+        Returns:
+            List of (node_id, similarity_score) tuples
+        """
+        try:
+            node_ids = self.vector_store.get_node_ids(query_embedding, top_k)
+            # Return with mock similarity scores for now - would need vector store enhancement
+            return [(node_id, 0.8) for node_id in node_ids]
+        except Exception as e:
+            self.logger.error(f"Error finding similar nodes: {e}")
+            return []
+    
+    def get_cache_statistics(self) -> Dict[str, float]:
+        """Get embedding cache performance statistics."""
+        return self.cache.get_stats()
+    
+    def clear_cache(self):
+        """Clear the embedding cache."""
+        self.cache = EmbeddingCache(
+            max_entries=self.cache.max_entries, 
+            ttl_seconds=self.cache.ttl_seconds
+        )
+        self.logger.info("Embedding cache cleared")

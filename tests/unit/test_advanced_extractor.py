@@ -21,10 +21,17 @@ class TestAdvancedExtractor(unittest.TestCase):
         self.client_patcher = patch('memory_core.ingestion.advanced_extractor.genai.Client')
         self.mock_client = self.client_patcher.start()
         
-        # Create a mock for os.getenv to return a fake API key
-        self.env_patcher = patch('memory_core.ingestion.advanced_extractor.os.getenv')
-        self.mock_getenv = self.env_patcher.start()
-        self.mock_getenv.return_value = 'fake_api_key'
+        # Create a mock for the config to return a fake API key
+        self.config_patcher = patch('memory_core.ingestion.advanced_extractor.get_config')
+        self.mock_config = self.config_patcher.start()
+        
+        # Mock config object
+        mock_config_obj = MagicMock()
+        mock_config_obj.config.api.gemini_api_key = 'fake_api_key'
+        mock_config_obj.config.llm.model = 'gemini-2.0-flash-thinking-exp'
+        mock_config_obj.config.llm.temperature = 0.7
+        mock_config_obj.config.llm.max_tokens = 4096
+        self.mock_config.return_value = mock_config_obj
         
         # Sample text for testing
         self.sample_text = """
@@ -97,7 +104,7 @@ class TestAdvancedExtractor(unittest.TestCase):
     def tearDown(self):
         """Clean up after each test method."""
         self.client_patcher.stop()
-        self.env_patcher.stop()
+        self.config_patcher.stop()
     
     def test_create_prompt(self):
         """Test creating a prompt for the LLM."""
@@ -116,13 +123,13 @@ class TestAdvancedExtractor(unittest.TestCase):
         # Setup the mock response
         mock_response = MagicMock()
         mock_response.text = json.dumps(self.mock_units)
-        self.extractor.client.generate_content.return_value = mock_response
+        self.extractor.client.models.generate_content.return_value = mock_response
         
         # Extract knowledge units
         units = self.extractor.extract_knowledge_units(self.sample_text)
         
         # Verify API call
-        self.extractor.client.generate_content.assert_called_once()
+        self.extractor.client.models.generate_content.assert_called_once()
         
         # Verify results
         assert len(units) == 3
@@ -147,13 +154,13 @@ class TestAdvancedExtractor(unittest.TestCase):
         # Setup the mock to return invalid JSON
         mock_response = MagicMock()
         mock_response.text = "This is not JSON"
-        self.extractor.client.generate_content.return_value = mock_response
+        self.extractor.client.models.generate_content.return_value = mock_response
         
         # Extract knowledge units with invalid JSON response
         units = self.extractor.extract_knowledge_units(self.sample_text)
         
         # Verify API call
-        self.extractor.client.generate_content.assert_called_once()
+        self.extractor.client.models.generate_content.assert_called_once()
         
         # Verify empty result due to parsing error
         assert units == []
@@ -163,13 +170,13 @@ class TestAdvancedExtractor(unittest.TestCase):
         # Setup the mock to return valid JSON but with wrong structure
         mock_response = MagicMock()
         mock_response.text = json.dumps({"not_a_list": "this is an object, not a list"})
-        self.extractor.client.generate_content.return_value = mock_response
+        self.extractor.client.models.generate_content.return_value = mock_response
         
         # Extract knowledge units with invalid response structure
         units = self.extractor.extract_knowledge_units(self.sample_text)
         
         # Verify API call
-        self.extractor.client.generate_content.assert_called_once()
+        self.extractor.client.models.generate_content.assert_called_once()
         
         # Verify empty result due to wrong structure
         assert units == []
@@ -197,13 +204,13 @@ class TestAdvancedExtractor(unittest.TestCase):
         # Setup the mock to return JSON wrapped in markdown code block
         mock_response = MagicMock()
         mock_response.text = "```json\n" + json.dumps(self.mock_units) + "\n```"
-        self.extractor.client.generate_content.return_value = mock_response
+        self.extractor.client.models.generate_content.return_value = mock_response
         
         # Extract knowledge units
         units = self.extractor.extract_knowledge_units(self.sample_text)
         
         # Verify API call
-        self.extractor.client.generate_content.assert_called_once()
+        self.extractor.client.models.generate_content.assert_called_once()
         
         # Verify results were correctly parsed despite markdown formatting
         assert len(units) == 3
