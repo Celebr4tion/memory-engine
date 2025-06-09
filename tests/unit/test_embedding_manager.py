@@ -29,7 +29,7 @@ class TestEmbeddingManagerClass(unittest.TestCase):
         self.mock_client_class.return_value = self.mock_client
         
         # Mock environment variable
-        self.env_patcher = patch.dict('os.environ', {'GEMINI_API_KEY': 'fake_key'})
+        self.env_patcher = patch.dict('os.environ', {'GOOGLE_API_KEY': 'fake_key'})
         self.env_patcher.start()
         
         # Create the embedding manager with mocked vector store
@@ -152,8 +152,8 @@ class TestEmbeddingManagerIntegration:
     def setup_method(self):
         """Set up the test with actual connection to services."""
         # Skip if API key not set
-        if not (os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY')):
-            pytest.skip("GOOGLE_API_KEY or GEMINI_API_KEY environment variable not set")
+        if not os.getenv('GOOGLE_API_KEY'):
+            pytest.skip("GOOGLE_API_KEY environment variable not set")
         
         # Create vector store with unique collection name to avoid dimension conflicts
         import time

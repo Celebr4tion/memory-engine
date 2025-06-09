@@ -55,9 +55,9 @@ class NaturalLanguageQueryProcessor:
         self.logger = logging.getLogger(__name__)
         
         # Initialize Gemini client
-        api_key = self.config.config.api.gemini_api_key
+        api_key = self.config.config.api.google_api_key
         if not api_key:
-            raise ValueError("GEMINI_API_KEY not configured for natural language processing")
+            raise ValueError("GOOGLE_API_KEY not configured for natural language processing")
         
         self.client = genai.Client(api_key=api_key)
         self.model = self.config.config.llm.model

@@ -8,9 +8,8 @@ for knowledge extraction, storage, and retrieval.
 import logging
 from typing import Dict, List, Any, Optional, Union
 
-from google.adk.agents import LlmAgent
+from google.adk.agents import BaseAgent, LlmAgent
 from google.adk.tools import FunctionTool
-from google.adk.models import Gemini
 
 from memory_core.core.knowledge_engine import KnowledgeEngine
 from memory_core.ingestion.advanced_extractor import extract_knowledge_units
@@ -18,7 +17,7 @@ from memory_core.model.knowledge_node import KnowledgeNode
 from memory_core.model.relationship import Relationship
 
 
-class KnowledgeAgent(LlmAgent):
+class KnowledgeAgent(BaseAgent):
     """
     An agent for extracting, storing, and retrieving knowledge using the Memory Engine.
     
@@ -26,11 +25,12 @@ class KnowledgeAgent(LlmAgent):
     with the knowledge graph.
     """
     
-    # Set model_config to allow extra fields
-    model_config = {
-        "extra": "allow",
-        "arbitrary_types_allowed": True
-    }
+    # Field declarations for Pydantic
+    knowledge_engine: KnowledgeEngine
+    llm_agent: LlmAgent
+    
+    # Pydantic configuration
+    model_config = {"arbitrary_types_allowed": True}
     
     def __init__(
         self,
@@ -48,88 +48,27 @@ class KnowledgeAgent(LlmAgent):
             model: The LLM model to use (default: gemini-2.5-pro-exp-03-25)
             name: The name of the agent
             description: The description of the agent
-            **kwargs: Additional arguments to pass to LlmAgent
+            **kwargs: Additional arguments to pass to BaseAgent
         """
-        # Initialize basic attributes before calling parent constructor
-        # Using _object_setattr to bypass Pydantic's validation
-        import inspect
-        from pydantic.main import _object_setattr
-        
-        _object_setattr(self, 'logger', logging.getLogger(__name__))
-        _object_setattr(self, 'knowledge_engine', knowledge_engine)
+        # Initialize logger
+        self.logger = logging.getLogger(__name__)
         
         # Connect to the knowledge engine
-        if not self.knowledge_engine.storage.g:
-            self.knowledge_engine.connect()
+        if not knowledge_engine.storage.g:
+            knowledge_engine.connect()
             
         # Define tools for interacting with the knowledge graph
         tools = [
-            FunctionTool(
-                function=self.extract_and_store_knowledge,
-                name="extract_and_store_knowledge",
-                description="Extract knowledge units from text and store them in the knowledge graph",
-                required_args=["text"],
-                arg_descriptions={
-                    "text": "The text to extract knowledge from"
-                },
-                return_description="A list of IDs for the knowledge nodes created"
-            ),
-            FunctionTool(
-                function=self.retrieve_knowledge,
-                name="retrieve_knowledge",
-                description="Retrieve knowledge related to a query from the knowledge graph",
-                required_args=["query"],
-                arg_descriptions={
-                    "query": "The query to search for"
-                },
-                return_description="A list of relevant knowledge nodes"
-            ),
-            FunctionTool(
-                function=self.create_relationship,
-                name="create_relationship",
-                description="Create a relationship between two knowledge nodes",
-                required_args=["from_id", "to_id", "relation_type"],
-                arg_descriptions={
-                    "from_id": "The ID of the source node",
-                    "to_id": "The ID of the target node",
-                    "relation_type": "The type of relationship (e.g., 'IS_A', 'PART_OF', 'RELATED_TO')",
-                    "confidence_score": "Optional confidence score between 0 and 1"
-                },
-                return_description="The ID of the created relationship"
-            )
+            FunctionTool(self.extract_and_store_knowledge),
+            FunctionTool(self.retrieve_knowledge),
+            FunctionTool(self.create_relationship)
         ]
         
-        # Handle model parameter
-        # In test environment, we get a mock that shouldn't be wrapped with Gemini()
-        model_param = model
-        
-        # Better detection for mock objects
-        # Check for MagicMock and Mock instances or their string repr
-        is_mock = False
-        
-        # Check if it's a unittest.mock
-        if str(type(model)).find('mock') >= 0 or (hasattr(model, '_mock_name')):
-            is_mock = True
-        # Check if it's specifically our test model name
-        elif model == "mock-model":
-            is_mock = True
-        
-        if is_mock:
-            # For test mocks, we'll skip the parent initialization and just set up the methods
-            self._setup_for_testing(name, description, model)
-            return
-        elif not isinstance(model, str) and hasattr(model, 'generate'):
-            # If it's already an LLM instance with generate method
-            model_param = model
-        else:
-            # If it's a string model name, wrap it with Gemini
-            model_param = Gemini(model)
-        
-        # Initialize the LlmAgent
-        super().__init__(
-            name=name,
-            description=description,
-            model=model_param,
+        # Create internal LLM agent
+        llm_agent = LlmAgent(
+            name=f"{name}_llm",
+            model=model,
+            description="LLM agent for knowledge processing",
             tools=tools,
             instruction="""
             You are a knowledge agent that helps users extract, store, and retrieve knowledge.
@@ -142,21 +81,25 @@ class KnowledgeAgent(LlmAgent):
             When retrieving knowledge, provide the most relevant information
             and explain how the pieces of knowledge are related.
             """,
+        )
+        
+        # Initialize the BaseAgent with custom fields
+        super().__init__(
+            name=name,
+            description=description,
+            knowledge_engine=knowledge_engine,
+            llm_agent=llm_agent,
+            sub_agents=[llm_agent],
             **kwargs
         )
     
-    def _setup_for_testing(self, name, description, model):
+    async def _run_async_impl(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Set up the agent for testing without calling the parent constructor.
-        This avoids Pydantic validation issues with mock objects in tests.
-        """
-        # Set basic attributes that would be set by the parent class
-        from pydantic.main import _object_setattr
+        Execute the knowledge agent's main logic.
         
-        _object_setattr(self, 'name', name)
-        _object_setattr(self, 'description', description)
-        _object_setattr(self, 'model', model)
-        _object_setattr(self, 'tools', [])
+        This method routes requests to the appropriate sub-methods based on the input.
+        """
+        return await self.llm_agent._run_async_impl(input_data)
     
     async def extract_and_store_knowledge(self, text: str) -> Dict[str, Any]:
         """

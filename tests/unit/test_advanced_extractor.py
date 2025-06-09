@@ -224,8 +224,8 @@ class TestAdvancedExtractorIntegration:
     def setup_method(self):
         """Set up the test with actual connection to Gemini API."""
         # Skip if API key not set
-        if not os.getenv('GEMINI_API_KEY'):
-            pytest.skip("GEMINI_API_KEY environment variable not set")
+        if not os.getenv('GOOGLE_API_KEY'):
+            pytest.skip("GOOGLE_API_KEY environment variable not set")
         
         # Create extractor
         self.extractor = AdvancedExtractor()

@@ -75,7 +75,7 @@ class TestConfigManager:
                 yaml.dump(test_config, f)
             
             # Clear environment variables to test file loading
-            env_vars = {'GEMINI_API_KEY': 'test-key'}
+            env_vars = {'GOOGLE_API_KEY': 'test-key'}
             with patch.dict(os.environ, env_vars, clear=True):
                 config = ConfigManager(temp_dir)
                 
@@ -107,7 +107,7 @@ class TestConfigManager:
                 json.dump(test_config, f)
             
             # Clear environment variables to test file loading
-            env_vars = {'GEMINI_API_KEY': 'test-key'}
+            env_vars = {'GOOGLE_API_KEY': 'test-key'}
             with patch.dict(os.environ, env_vars, clear=True):
                 config = ConfigManager(temp_dir)
                 
@@ -135,7 +135,7 @@ class TestConfigManager:
                 yaml.dump(env_config, f)
             
             # Clear environment variables and set only what we need
-            env_vars = {'ENVIRONMENT': 'development', 'GEMINI_API_KEY': 'test-key'}
+            env_vars = {'ENVIRONMENT': 'development', 'GOOGLE_API_KEY': 'test-key'}
             with patch.dict(os.environ, env_vars, clear=True):
                 config = ConfigManager(temp_dir)
                 # Environment-specific config should override base config
@@ -154,7 +154,7 @@ class TestConfigManager:
                 'JANUSGRAPH_HOST': 'env-host',
                 'JANUSGRAPH_PORT': '9999',
                 'DEBUG': 'true',
-                'GEMINI_API_KEY': 'test-api-key'
+                'GOOGLE_API_KEY': 'test-api-key'
             }
             
             with patch.dict(os.environ, env_vars):
@@ -170,7 +170,7 @@ class TestConfigManager:
         """Test successful configuration validation."""
         with tempfile.TemporaryDirectory() as temp_dir:
             env_vars = {
-                'GEMINI_API_KEY': 'valid-api-key',
+                'GOOGLE_API_KEY': 'valid-api-key',
                 'DATABASE_URL': 'sqlite:///test.db'
             }
             
@@ -186,12 +186,12 @@ class TestConfigManager:
             with patch.dict(os.environ, {}, clear=True):
                 with pytest.raises(ConfigValidationError) as exc_info:
                     ConfigManager(temp_dir)
-                assert "GEMINI_API_KEY is required" in str(exc_info.value)
+                assert "GOOGLE_API_KEY is required" in str(exc_info.value)
     
     def test_dimension_mismatch_validation(self):
         """Test validation of dimension mismatch between vector store and embedding."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            env_vars = {'GEMINI_API_KEY': 'test-key'}
+            env_vars = {'GOOGLE_API_KEY': 'test-key'}
             with patch.dict(os.environ, env_vars, clear=True):
                 # Create config and manually set mismatched dimensions
                 config = ConfigManager(temp_dir)
@@ -209,7 +209,7 @@ class TestConfigManager:
     def test_get_and_set_methods(self):
         """Test the get and set methods for configuration values."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            env_vars = {'GEMINI_API_KEY': 'test-key'}
+            env_vars = {'GOOGLE_API_KEY': 'test-key'}
             with patch.dict(os.environ, env_vars):
                 config = ConfigManager(temp_dir)
                 
@@ -225,7 +225,7 @@ class TestConfigManager:
     def test_to_dict_method(self):
         """Test converting configuration to dictionary."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            env_vars = {'GEMINI_API_KEY': 'test-key'}
+            env_vars = {'GOOGLE_API_KEY': 'test-key'}
             with patch.dict(os.environ, env_vars):
                 config = ConfigManager(temp_dir)
                 config_dict = config.to_dict()
@@ -238,7 +238,7 @@ class TestConfigManager:
     def test_save_to_file(self):
         """Test saving configuration to file."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            env_vars = {'GEMINI_API_KEY': 'test-key'}
+            env_vars = {'GOOGLE_API_KEY': 'test-key'}
             with patch.dict(os.environ, env_vars):
                 config = ConfigManager(temp_dir)
                 
@@ -267,7 +267,7 @@ class TestConfigManager:
     def test_global_config_functions(self):
         """Test global configuration functions."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            env_vars = {'GEMINI_API_KEY': 'test-key'}
+            env_vars = {'GOOGLE_API_KEY': 'test-key'}
             with patch.dict(os.environ, env_vars):
                 # Test init_config
                 config1 = init_config(temp_dir)

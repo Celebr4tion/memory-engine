@@ -12,6 +12,8 @@ from memory_core.db.versioned_graph_adapter import VersionedGraphAdapter
 from memory_core.versioning.revision_manager import RevisionManager
 from memory_core.model.knowledge_node import KnowledgeNode
 from memory_core.model.relationship import Relationship
+from memory_core.embeddings.embedding_manager import EmbeddingManager
+from memory_core.embeddings.vector_store import VectorStoreMilvus
 
 
 class KnowledgeEngine:
@@ -48,6 +50,16 @@ class KnowledgeEngine:
         
         # Create the graph adapter
         self.graph_adapter = GraphStorageAdapter(storage=self.storage)
+        
+        # Initialize embedding manager with vector store
+        try:
+            self.vector_store = VectorStoreMilvus()
+            self.embedding_manager = EmbeddingManager(self.vector_store)
+        except Exception as e:
+            # If embedding manager fails to initialize, set to None
+            # This allows the engine to work without embeddings
+            self.vector_store = None
+            self.embedding_manager = None
         
         # Create the revision manager if versioning is enabled
         if enable_versioning:
@@ -87,7 +99,11 @@ class KnowledgeEngine:
         Returns:
             True if disconnection successful, False otherwise
         """
-        return self.storage.disconnect()
+        try:
+            self.storage.close()
+            return True
+        except Exception:
+            return False
     
     def save_node(self, node: KnowledgeNode) -> str:
         """

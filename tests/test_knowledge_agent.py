@@ -220,7 +220,7 @@ class TestKnowledgeAgentIntegration:
     def setup_method(self, method, gemini_api_key=None, google_adk_available=None):
         """Set up the test with actual connections to services."""
         # Get dependencies from fixtures or parameters (for direct calling)
-        api_key = gemini_api_key or os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY')
+        api_key = gemini_api_key or os.getenv('GOOGLE_API_KEY')
         adk_available = google_adk_available
         
         if adk_available is None:
@@ -233,7 +233,7 @@ class TestKnowledgeAgentIntegration:
                 
         # Skip if no API key
         if not api_key:
-            pytest.skip("GOOGLE_API_KEY or GEMINI_API_KEY environment variable not set")
+            pytest.skip("GOOGLE_API_KEY environment variable not set")
         
         # Skip if Google ADK not available
         if not adk_available:
@@ -253,7 +253,7 @@ class TestKnowledgeAgentIntegration:
             self.mock_engine.save_relationship = MagicMock(return_value="test_edge_id")
             
             # Create the agent with the mock engine but real ADK and Gemini connections
-            os.environ['GEMINI_API_KEY'] = api_key  # Ensure API key is set in env
+            os.environ['GOOGLE_API_KEY'] = api_key  # Ensure API key is set in env
             self.agent = KnowledgeAgent(
                 knowledge_engine=self.mock_engine,
                 model="gemini-1.5-pro"

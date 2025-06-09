@@ -33,9 +33,9 @@ class AdvancedExtractor:
         self.config = get_config()
         
         # Initialize Gemini client using genai.Client
-        api_key = self.config.config.api.gemini_api_key
+        api_key = self.config.config.api.google_api_key
         if not api_key:
-            raise ValueError("GEMINI_API_KEY not configured. Set it via environment variable or configuration file.")
+            raise ValueError("GOOGLE_API_KEY not configured. Set it via environment variable or configuration file.")
         self.client = genai.Client(api_key=api_key) 
         self.model = self.config.config.llm.model
     

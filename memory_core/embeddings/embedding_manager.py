@@ -124,9 +124,9 @@ class EmbeddingManager:
         self.cache = EmbeddingCache(max_entries=cache_size, ttl_seconds=cache_ttl)
         
         # Initialize Gemini client using genai.Client
-        api_key = self.config.config.api.gemini_api_key
+        api_key = self.config.config.api.google_api_key
         if not api_key:
-            raise ValueError("GEMINI_API_KEY not configured. Set it via environment variable or configuration file.")
+            raise ValueError("GOOGLE_API_KEY not configured. Set it via environment variable or configuration file.")
         self.client = genai.Client(api_key=api_key)
         self.embedding_model = self.config.config.embedding.model
     

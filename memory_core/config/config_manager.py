@@ -122,13 +122,12 @@ class LLMConfig:
 @dataclass
 class APIConfig:
     """API keys and authentication configuration"""
-    gemini_api_key: Optional[str] = None
     google_api_key: Optional[str] = None
     
-    def __post_init__(self):
-        # Use google_api_key as fallback for gemini_api_key
-        if not self.gemini_api_key and self.google_api_key:
-            self.gemini_api_key = self.google_api_key
+    @property
+    def gemini_api_key(self) -> Optional[str]:
+        """Compatibility property - returns the same as google_api_key"""
+        return self.google_api_key
 
 
 @dataclass
@@ -323,8 +322,8 @@ class ConfigManager:
             'FALLBACK_MODEL': ('llm.fallback_model', str),
             
             # API Keys
-            'GEMINI_API_KEY': ('api.gemini_api_key', str),
             'GOOGLE_API_KEY': ('api.google_api_key', str),
+            'GEMINI_API_KEY': ('api.google_api_key', str),  # For backward compatibility
             
             # Logging
             'LOG_LEVEL': ('logging.level', lambda x: LogLevel(x.upper())),
@@ -403,8 +402,8 @@ class ConfigManager:
         errors = []
         
         # Validate required API keys
-        if not self.config.api.gemini_api_key:
-            errors.append("GEMINI_API_KEY is required")
+        if not self.config.api.google_api_key:
+            errors.append("GOOGLE_API_KEY is required")
         
         # Validate database configuration
         if not self.config.database.url:

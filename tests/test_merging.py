@@ -384,7 +384,7 @@ class TestMergingIntegration:
         if not hasattr(self, 'storage') or not self.storage.g:
             pytest.skip("JanusGraph storage not available in setup")
         # Ensure embedding manager and its connection are available
-        if not hasattr(self, 'embedding_manager') or not self.embedding_manager.vector_store.is_connected:
+        if not hasattr(self, 'embedding_manager') or not self.embedding_manager.vector_store.connected:
             pytest.skip("Embedding manager / Milvus not available in setup")
 
         embedding_manager = self.embedding_manager # Use the one from setup

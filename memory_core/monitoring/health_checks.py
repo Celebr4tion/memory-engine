@@ -260,7 +260,7 @@ class HealthChecker:
         start_time = time.time()
         
         try:
-            api_key = self.config.config.api.gemini_api_key
+            api_key = self.config.config.api.google_api_key
             if not api_key:
                 return HealthCheckResult(
                     component="gemini_api",
