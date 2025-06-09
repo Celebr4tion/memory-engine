@@ -495,6 +495,11 @@ class ConfigManager:
                         result[key] = _asdict_recursive(value)
                     else:
                         result[key] = value
+                
+                # Add APIConfig compatibility properties
+                if hasattr(obj, 'gemini_api_key') and 'google_api_key' in result:
+                    result['gemini_api_key'] = obj.gemini_api_key
+                
                 return result
             return obj
         

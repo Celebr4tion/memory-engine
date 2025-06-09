@@ -99,7 +99,7 @@ class TestKnowledgeEngine:
         # Setup
         storage_mock = MockJanusStorage.return_value
         storage_mock.connect.return_value = True
-        storage_mock.disconnect.return_value = True
+        storage_mock.close.return_value = True
         
         # Create engine
         engine = KnowledgeEngine()
@@ -112,7 +112,7 @@ class TestKnowledgeEngine:
         # Act & Assert - Disconnect
         result = engine.disconnect()
         assert result is True
-        storage_mock.disconnect.assert_called_once()
+        storage_mock.close.assert_called_once()
 
     @patch('memory_core.core.knowledge_engine.JanusGraphStorage')
     @patch('memory_core.core.knowledge_engine.GraphStorageAdapter')

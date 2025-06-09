@@ -28,6 +28,7 @@ class KnowledgeAgent(BaseAgent):
     # Field declarations for Pydantic
     knowledge_engine: KnowledgeEngine
     llm_agent: LlmAgent
+    logger: logging.Logger
     
     # Pydantic configuration
     model_config = {"arbitrary_types_allowed": True}
@@ -50,9 +51,6 @@ class KnowledgeAgent(BaseAgent):
             description: The description of the agent
             **kwargs: Additional arguments to pass to BaseAgent
         """
-        # Initialize logger
-        self.logger = logging.getLogger(__name__)
-        
         # Connect to the knowledge engine
         if not knowledge_engine.storage.g:
             knowledge_engine.connect()
@@ -83,12 +81,16 @@ class KnowledgeAgent(BaseAgent):
             """,
         )
         
+        # Initialize logger
+        logger = logging.getLogger(__name__)
+        
         # Initialize the BaseAgent with custom fields
         super().__init__(
             name=name,
             description=description,
             knowledge_engine=knowledge_engine,
             llm_agent=llm_agent,
+            logger=logger,
             sub_agents=[llm_agent],
             **kwargs
         )

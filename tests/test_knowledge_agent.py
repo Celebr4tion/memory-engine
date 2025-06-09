@@ -39,9 +39,6 @@ class TestKnowledgeAgent:
         self.function_tool_patcher = patch('memory_core.agents.knowledge_agent.FunctionTool')
         self.mock_function_tool = self.function_tool_patcher.start()
         
-        self.gemini_patcher = patch('memory_core.agents.knowledge_agent.Gemini')
-        self.mock_gemini = self.gemini_patcher.start()
-        
         # Mock extract_knowledge_units function
         self.extract_patcher = patch('memory_core.agents.knowledge_agent.extract_knowledge_units')
         self.mock_extract = self.extract_patcher.start()
@@ -74,7 +71,6 @@ class TestKnowledgeAgent:
         """Clean up after each test method."""
         self.llm_agent_patcher.stop()
         self.function_tool_patcher.stop()
-        self.gemini_patcher.stop()
         self.extract_patcher.stop()
     
     @pytest.mark.asyncio

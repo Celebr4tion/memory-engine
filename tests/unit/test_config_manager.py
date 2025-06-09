@@ -297,13 +297,13 @@ class TestConfigDataClasses:
         """Test APIConfig fallback from google_api_key to gemini_api_key."""
         from memory_core.config.config_manager import APIConfig
         
-        # Test fallback when gemini_api_key is None
+        # Test fallback when google_api_key is set
         config = APIConfig(google_api_key="google-key")
         assert config.gemini_api_key == "google-key"
         
-        # Test no fallback when gemini_api_key is set
-        config2 = APIConfig(gemini_api_key="gemini-key", google_api_key="google-key")
-        assert config2.gemini_api_key == "gemini-key"
+        # Test when google_api_key is None
+        config2 = APIConfig(google_api_key=None)
+        assert config2.gemini_api_key is None
     
     def test_enum_values(self):
         """Test enum value conversions."""
