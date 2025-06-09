@@ -7,6 +7,7 @@ import time
 import numpy as np
 import uuid
 import os
+import pytest
 
 # Configure logging
 logging.basicConfig(
