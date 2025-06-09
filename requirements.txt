@@ -43,6 +43,12 @@ pytest-cov
 pytest-asyncio
 pytest-env
 
+# Security and Cryptography
+cryptography
+bcrypt
+PyJWT
+flask
+
 # LLM API
 openai
 google-genai
