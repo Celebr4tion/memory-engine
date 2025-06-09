@@ -269,10 +269,10 @@ class TestKnowledgeAgentIntegration:
             pytest.skip(f"Failed to initialize integration test: {str(e)}")
     
     @pytest.mark.asyncio
-    async def test_extract_knowledge_integration(self, gemini_api_key, google_adk_available):
+    async def test_extract_knowledge_integration(self):
         """Test extracting knowledge with real Gemini API."""
-        # Pass fixtures to setup
-        self.setup_method(None, gemini_api_key, google_adk_available)
+        # Call setup without fixtures - it will check environment
+        self.setup_method(None)
         
         try:
             # Call the method

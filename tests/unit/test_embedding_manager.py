@@ -155,12 +155,14 @@ class TestEmbeddingManagerIntegration:
         if not os.getenv('GEMINI_API_KEY'):
             pytest.skip("GEMINI_API_KEY environment variable not set")
         
-        # Create vector store
+        # Create vector store with unique collection name to avoid dimension conflicts
+        import time
+        collection_name = f"test_embeddings_{int(time.time())}"
         self.vector_store = VectorStoreMilvus(
             host="localhost",
             port=19530,
-            collection_name="test_embeddings",
-            dimension=768  # Gemini embedding dimension (text-embedding-004)
+            collection_name=collection_name,
+            dimension=768  # Gemini embedding dimension (gemini-embedding-exp-03-07 with config)
         )
         
         # Add a delay before trying to connect to Milvus
@@ -182,7 +184,11 @@ class TestEmbeddingManagerIntegration:
     def teardown_method(self):
         """Clean up after test."""
         if hasattr(self, 'vector_store'):
-            self.vector_store.disconnect()
+            try:
+                # Drop the test collection to clean up
+                self.vector_store.disconnect()
+            except Exception:
+                pass  # Ignore cleanup errors
     
     def test_live_generate_embedding(self):
         """Test generating embedding with real Gemini API."""

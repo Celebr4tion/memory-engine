@@ -187,7 +187,8 @@ class VectorStoreMilvus:
         
         # If node_id exists, delete it first
         if query_result:
-            self.collection.delete(f'node_id == "{node_id}"')
+            expr = f'node_id in ["{node_id}"]'
+            self.collection.delete(expr)
         
         # Insert new embedding
         data = [
@@ -264,6 +265,8 @@ class VectorStoreMilvus:
         if not self.collection:
             raise RuntimeError("Not connected to Milvus. Call connect() first.")
         
-        result = self.collection.delete(f'node_id == "{node_id}"')
+        # Use Milvus compatible delete expression
+        expr = f'node_id in ["{node_id}"]'
+        result = self.collection.delete(expr)
         self.collection.flush()
         return True

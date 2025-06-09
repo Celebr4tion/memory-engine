@@ -157,10 +157,16 @@ class EmbeddingManager:
         try:
             self.logger.info(f"Generating embedding for text (task: {task_type}): {text[:50]}...")
             # Generate embedding using typed EmbedContentConfig to match API expectations and tests
+            embedding_config = types.EmbedContentConfig(task_type=task_type)
+            
+            # Add dimension specification for gemini-embedding-exp models
+            if "gemini-embedding-exp" in self.embedding_model:
+                embedding_config.output_dimensionality = self.config.config.embedding.dimension
+            
             result = self.client.models.embed_content(
                 model=self.embedding_model,
                 contents=text,
-                config=types.EmbedContentConfig(task_type=task_type)
+                config=embedding_config
             )
             # Support different response structures
             if hasattr(result, 'embeddings'):
@@ -286,8 +292,8 @@ class EmbeddingManager:
                     
             except Exception as e:
                 self.logger.error(f"Failed to generate embedding for text: {text[:50]}... Error: {e}")
-                # Use zero vector as fallback
-                embeddings.append([0.0] * 768)  # Typical embedding dimension
+                # Use zero vector as fallback with configured dimension
+                embeddings.append([0.0] * self.config.config.embedding.dimension)
         
         self.logger.info(f"Generated {len(embeddings)} embeddings with {cache_hits} cache hits")
         return embeddings

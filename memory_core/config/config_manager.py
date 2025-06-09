@@ -99,8 +99,8 @@ class VectorStoreConfig:
 @dataclass
 class EmbeddingConfig:
     """Embedding model configuration"""
-    model: str = "text-embedding-004"
-    dimension: int = 768
+    model: str = "gemini-embedding-exp-03-07"
+    dimension: int = 768  # Can be 768, 1536, or 3072 for gemini-embedding-exp-03-07
     batch_size: int = 32
     max_retries: int = 3
     retry_delay: float = 1.0
