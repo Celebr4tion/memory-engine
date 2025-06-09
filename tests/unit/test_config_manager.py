@@ -50,7 +50,7 @@ class TestConfigManager:
             assert config.config.janusgraph.host == "localhost"
             assert config.config.janusgraph.port == 8182
             assert config.config.vector_store.type == VectorStoreType.MILVUS
-            assert config.config.embedding.model == "text-embedding-004"
+            assert config.config.embedding.model == "gemini-embedding-exp-03-07"
             assert config.config.llm.model == "gemini-2.0-flash-thinking-exp"
     
     def test_yaml_config_loading(self):

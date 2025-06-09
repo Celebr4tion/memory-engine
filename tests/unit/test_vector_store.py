@@ -328,7 +328,7 @@ class TestVectorStoreMilvus(unittest.TestCase):
         result = vector_store.delete_embedding(node_id)
         
         # Assert
-        self.mock_collection.delete.assert_called_once_with(f'node_id == "{node_id}"')
+        self.mock_collection.delete.assert_called_once_with(f'node_id in ["{node_id}"]')
         self.mock_collection.flush.assert_called_once()
         self.assertTrue(result)
 

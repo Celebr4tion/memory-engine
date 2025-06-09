@@ -62,7 +62,7 @@ class TestEmbeddingManagerClass(unittest.TestCase):
         call_args = self.mock_client.models.embed_content.call_args
         
         # Verify the model and contents
-        self.assertEqual(call_args[1]['model'], 'text-embedding-004')
+        self.assertEqual(call_args[1]['model'], 'gemini-embedding-exp-03-07')
         self.assertEqual(call_args[1]['contents'], self.sample_text)
         
         # Verify config is a typed object with task_type
@@ -152,8 +152,8 @@ class TestEmbeddingManagerIntegration:
     def setup_method(self):
         """Set up the test with actual connection to services."""
         # Skip if API key not set
-        if not os.getenv('GEMINI_API_KEY'):
-            pytest.skip("GEMINI_API_KEY environment variable not set")
+        if not (os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY')):
+            pytest.skip("GOOGLE_API_KEY or GEMINI_API_KEY environment variable not set")
         
         # Create vector store with unique collection name to avoid dimension conflicts
         import time
