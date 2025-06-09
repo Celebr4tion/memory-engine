@@ -160,7 +160,7 @@ class TestEmbeddingManagerIntegration:
             host="localhost",
             port=19530,
             collection_name="test_embeddings",
-            dimension=3072  # Gemini embedding dimension
+            dimension=768  # Gemini embedding dimension (text-embedding-004)
         )
         
         # Add a delay before trying to connect to Milvus
@@ -191,7 +191,7 @@ class TestEmbeddingManagerIntegration:
             embedding = self.embedding_manager.generate_embedding("What is the meaning of life?")
             
             # Verify result
-            assert len(embedding) == 3072
+            assert len(embedding) == 768
             assert all(isinstance(x, float) for x in embedding)
         except Exception as e:
             pytest.skip(f"Gemini API error: {str(e)}")
