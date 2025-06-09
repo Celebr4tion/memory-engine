@@ -1,0 +1,53 @@
+# Staging Environment Configuration
+# Production-like settings for staging environment
+
+environment: staging
+debug: false
+
+# Staging database
+database:
+  url: "postgresql://user:password@staging-db:5432/memory_engine_staging"
+  pool_size: 15
+  max_overflow: 25
+
+# Staging JanusGraph cluster
+janusgraph:
+  host: "staging-janusgraph"
+  port: 8182
+  use_ssl: true
+  connection_timeout: 30
+  max_retry_attempts: 3
+
+# Staging Milvus cluster
+vector_store:
+  milvus:
+    host: "staging-milvus"
+    port: 19530
+    collection_name: "knowledge_vectors_staging"
+
+# Production-like logging
+logging:
+  level: "INFO"
+  enable_console: true
+  file_path: "/var/log/memory_engine/staging.log"
+  max_file_size: 52428800  # 50MB
+  backup_count: 10
+
+# Enhanced security for staging
+security:
+  encrypt_at_rest: true
+  tls_enabled: true
+  max_login_attempts: 3
+
+# Production-like performance
+performance:
+  workers: 6
+  max_memory_usage: 2147483648  # 2GB
+  cache_size: 2000
+
+# Regular snapshots
+versioning:
+  enable_versioning: true
+  enable_snapshots: true
+  changes_threshold: 200
+  snapshot_interval: 7200  # 2 hours

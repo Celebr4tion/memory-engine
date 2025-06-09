@@ -1,10 +1,10 @@
 # JanusGraph connectivity
-gremlinpython
-aiogremlin
+gremlinpython>=3.7.0
 
 # Vector database
 faiss-cpu
 hnswlib
+pymilvus
 
 # Machine Learning / LLM
 numpy
@@ -24,11 +24,40 @@ python-dotenv
 pyyaml
 joblib
 tqdm
+psutil
+
+# Monitoring and Observability
+prometheus_client
+structlog
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-requests
+opentelemetry-exporter-prometheus
+opentelemetry-exporter-jaeger
+httpx
 
 # Testing
 pytest
 pytest-cov
 pytest-asyncio
+pytest-env
+
+# Security and Cryptography
+cryptography
+bcrypt
+PyJWT
+flask
 
 # LLM API
 openai
+google-genai
+
+# Google Agent Development Kit
+google-adk
+
+# WebSocket for Gremlin
+tornado
+
+# Optional: For integration test coverage
+coverage

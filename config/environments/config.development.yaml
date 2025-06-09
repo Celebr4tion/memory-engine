@@ -1,0 +1,45 @@
+# Development Environment Configuration
+# Overrides base configuration for development environment
+
+environment: development
+debug: true
+
+# Use local SQLite for development
+database:
+  url: "sqlite:///memory_engine_dev.db"
+  pool_size: 5
+
+# Local JanusGraph instance
+janusgraph:
+  host: "localhost"
+  port: 8182
+  use_ssl: false
+
+# Local Milvus instance
+vector_store:
+  milvus:
+    host: "localhost"
+    port: 19530
+    collection_name: "knowledge_vectors_dev"
+
+# Development logging
+logging:
+  level: "DEBUG"
+  enable_console: true
+  file_path: "logs/development.log"
+
+# Relaxed security for development
+security:
+  encrypt_at_rest: false
+  tls_enabled: false
+
+# Lower performance requirements for development
+performance:
+  workers: 2
+  max_memory_usage: 536870912  # 512MB
+  cache_size: 500
+
+# Faster snapshots for development
+versioning:
+  changes_threshold: 50
+  snapshot_interval: 1800  # 30 minutes
