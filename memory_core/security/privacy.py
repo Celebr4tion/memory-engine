@@ -9,7 +9,7 @@ import logging
 from typing import Dict, List, Optional, Set, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 
 from memory_core.model.knowledge_node import KnowledgeNode

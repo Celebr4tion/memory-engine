@@ -11,10 +11,14 @@ Memory Engine is a comprehensive knowledge management platform that transforms u
 - 🧠 **Intelligent Knowledge Extraction**: Uses Google Gemini API to extract structured knowledge from raw text
 - 🕸️ **Automatic Relationship Discovery**: Detects and creates relationships between knowledge entities
 - 🔍 **Semantic Search**: Vector-based similarity search for contextual information retrieval
+- 🔐 **Enterprise Security**: Comprehensive authentication, RBAC, encryption, and audit logging
+- 🛡️ **Privacy Controls**: Fine-grained knowledge privacy levels and access control
+- 📊 **Quality Enhancement**: Automated quality assessment and contradiction resolution
 - 📚 **Version Control**: Complete change tracking and rollback capabilities
 - 🔗 **Flexible Integration**: MCP (Module Communication Protocol) interface for external systems
 - 🤖 **Agent Support**: Google ADK integration for conversational knowledge interactions
 - ⚡ **Real-time Processing**: Concurrent processing of knowledge ingestion and retrieval
+- 📈 **Monitoring**: Performance monitoring, health checks, and observability
 
 ## 🚀 Quick Start
 
@@ -100,6 +104,7 @@ print(f"Content: {retrieved.content}")
 | [🏗️ Architecture](docs/developer/architecture.md) | System architecture and component interactions |
 | [🏗️ Project Structure](ARCHITECTURE.md) | Detailed project organization and structure |
 | [📡 API Reference](docs/api/api_reference.md) | Complete API documentation including MCP interface |
+| [🔐 Security Framework](docs/security/README.md) | Authentication, RBAC, encryption, and privacy controls |
 | [🔧 Troubleshooting](docs/user/troubleshooting.md) | Common issues and solutions |
 
 ## 💻 Examples
@@ -109,6 +114,9 @@ Explore practical examples in the [`examples/`](examples/) directory:
 - [**Basic Usage**](examples/basic_usage.py): Core operations and workflows
 - [**Knowledge Extraction**](examples/knowledge_extraction.py): Text processing and knowledge extraction
 - [**MCP Integration**](examples/mcp_client_example.py): Using the Module Communication Protocol
+- [**Security Framework**](examples/security_example.py): Authentication, RBAC, encryption, and privacy controls
+- [**Advanced Queries**](examples/advanced_query_example.py): Complex querying and analytics
+- [**Knowledge Synthesis**](examples/synthesis_example.py): Question answering and insight discovery
 
 ### Run Examples
 

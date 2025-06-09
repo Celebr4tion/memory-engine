@@ -7,6 +7,7 @@ quality through comparative analysis.
 """
 
 import logging
+import re
 import time
 import numpy as np
 from typing import Dict, List, Any, Optional, Tuple, Set
