@@ -162,4 +162,4 @@ volumes/
 docker/volumes/
 
 # Claude Code
-.claude
+.claude/
