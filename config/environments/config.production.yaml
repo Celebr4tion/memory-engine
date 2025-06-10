@@ -27,6 +27,7 @@ vector_store:
     host: "prod-milvus"
     port: 19530
     collection_name: "knowledge_vectors"
+    dimension: 3072  # Gemini embedding dimension
     nlist: 2048
     nprobe: 20
 

@@ -7,7 +7,6 @@ and provides shared fixtures for tests.
 import os
 import pytest
 import dotenv
-from unittest.mock import MagicMock
 
 # Load environment variables from .env file
 dotenv.load_dotenv()
