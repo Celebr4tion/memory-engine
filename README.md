@@ -6,6 +6,30 @@ A sophisticated semantic knowledge management system that combines graph-based k
 
 Memory Engine is a comprehensive knowledge management platform that transforms unstructured text into a structured, searchable knowledge graph. By combining the relationship modeling power of graph databases with the semantic understanding of vector embeddings, it creates a foundation for building intelligent applications that can understand, connect, and reason about information.
 
+## 🚧 Project Status
+
+**This project is currently in active development (v0.1.0) and should be considered experimental.**
+
+### Vision
+
+Our goal is to create a truly open and accessible knowledge management system that works with:
+- **Any AI model**: Commercial APIs (OpenAI, Anthropic, Google) and local models (Ollama, Hugging Face)
+- **Any deployment**: From laptop development to distributed production systems
+- **Any data**: Text, documents, structured data, and multimedia content
+
+We aim to eliminate dependency on paid APIs by providing full support for local model execution, making advanced knowledge management accessible to everyone.
+
+## 🎯 What Memory Engine Does
+
+**Input**: Unstructured text, documents, or data
+**Output**: Structured knowledge with automatic relationships and semantic search capabilities
+
+### Core Functions
+
+1. **Knowledge Ingestion**: Feed text/documents → Engine extracts entities, facts, and relationships → Stores in graph database
+2. **Knowledge Retrieval**: Query in natural language → Engine searches semantically → Returns relevant information with context
+3. **Automatic Processing**: The engine handles complexity internally - relationship discovery, quality assessment, versioning, and optimization
+
 ### Key Features
 
 - 🧠 **Intelligent Knowledge Extraction**: Uses Google Gemini API to extract structured knowledge from raw text
@@ -32,7 +56,7 @@ Memory Engine is a comprehensive knowledge management platform that transforms u
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/Celebr4tion/memory-engine.git
 cd memory-engine
 
 # Run automated setup
@@ -238,19 +262,7 @@ pre-commit install
 
 ## 📊 Performance
 
-### Benchmarks (Typical Performance)
-
-- **Knowledge Extraction**: ~2-5 seconds per 1000 words
-- **Vector Search**: ~50-200ms for 10K+ nodes
-- **Graph Traversal**: ~10-50ms for relationship queries
-- **Node Storage**: ~100-500 nodes/second
-
-### Scalability
-
-- **Horizontal Scaling**: Supports distributed JanusGraph and Milvus clusters
-- **Vertical Scaling**: Optimized for multi-core processing
-- **Data Volume**: Tested with 100K+ nodes and 1M+ relationships
-- **Concurrent Users**: Supports multiple concurrent read/write operations
+Performance characteristics will vary depending on your hardware, data complexity, and configuration. We recommend testing with your specific use case and data to establish realistic benchmarks.
 
 ## 🤝 Contributing
 
@@ -281,9 +293,9 @@ This project is licensed under the [Hippocratic License 3.0](LICENSE.md) - an et
 ### Getting Help
 
 - 📖 **Documentation**: Check the [`docs/`](docs/) directory
-- 🐛 **Issues**: Report bugs or request features via [GitHub Issues](../../issues)
-- 💬 **Discussions**: Join conversations in [GitHub Discussions](../../discussions)
-- 🔧 **Troubleshooting**: See the [troubleshooting guide](docs/troubleshooting.md)
+- 🐛 **Issues**: Report bugs or request features via [GitHub Issues](https://github.com/Celebr4tion/memory-engine/issues)
+- 💬 **Discussions**: Join conversations in [GitHub Discussions](https://github.com/Celebr4tion/memory-engine/discussions)
+- 🔧 **Troubleshooting**: See the [troubleshooting guide](docs/user/troubleshooting.md)
 
 ### Community
 
@@ -293,11 +305,10 @@ This project is licensed under the [Hippocratic License 3.0](LICENSE.md) - an et
 
 ### Status
 
-- ✅ **Core Features**: Fully implemented and tested
-- ✅ **Documentation**: Comprehensive guides and API docs
-- ✅ **Testing**: 95%+ test coverage with integration tests
-- 🚀 **Production Ready**: Suitable for production deployments
-- 📈 **Active Development**: Regular updates and improvements
+- ⚠️ **Development Status**: Alpha version - breaking changes expected
+- 📝 **Documentation**: Basic setup and usage guides available
+- 🧪 **Testing**: Core functionality tested, expanding coverage
+- 🔧 **Stability**: Experimental - not recommended for production use yet
 
 ---
 

@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security middleware with CSRF protection and security headers
 - Comprehensive security test suite with 73+ test cases
 
-## [1.0.0] - 2024-XX-XX
+## [1.0.0] - 2025-06-09
 
 ### Added
 
@@ -189,7 +189,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 We thank all contributors who have helped build Memory Engine:
 
-- **Core Development Team**: Initial architecture and implementation
+- **Janek Wenning**: Initial architecture and implementation
 - **Security Team**: Security framework design and implementation
 - **Quality Assurance**: Testing framework and quality validation
 - **Documentation Team**: Comprehensive documentation and examples
@@ -209,17 +209,17 @@ Special thanks to:
 
 | Version | Release Date | Description |
 |---------|--------------|-------------|
-| 1.0.0   | 2024-XX-XX   | Initial release with full feature set |
+| 0.1.0   | 2025-06-09   | Initial alpha release - experimental |
 
 ## Support
 
 For questions about releases or changes:
 
 - **Documentation**: See [docs/](docs/) for detailed documentation
-- **Issues**: Report bugs on [GitHub Issues](https://github.com/your-org/memory-engine/issues)
-- **Discussions**: Join [GitHub Discussions](https://github.com/your-org/memory-engine/discussions)
-- **Security**: Report security issues to security@memory-engine.org
+- **Issues**: Report bugs on [GitHub Issues](https://github.com/Celebr4tion/memory-engine/issues)
+- **Discussions**: Join [GitHub Discussions](https://github.com/Celebr4tion/memory-engine/discussions)
+- **Security**: Report security issues to @Celebr4tion on GitHub
 
 ## License
 
-Memory Engine is released under the [MIT License](LICENSE.md).
+Memory Engine is released under the [Hippocratic License 3.0](LICENSE.md).

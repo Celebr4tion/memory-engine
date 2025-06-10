@@ -10,8 +10,8 @@ We provide security updates for the following versions of Memory Engine:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-| < 1.0   | :x:                |
+| 0.1.x   | :white_check_mark: |
+| < 0.1   | :x:                |
 
 ## Security Features
 
@@ -52,7 +52,7 @@ Security vulnerabilities should not be reported through public GitHub issues as 
 
 ### 2. Report privately
 
-Send an email to: **security@memory-engine.org** (or if that's not available, contact the project maintainers directly)
+Contact the project maintainer directly via GitHub: **@Celebr4tion** or create a private security advisory on GitHub.
 
 Include the following information:
 - **Description**: Clear description of the vulnerability
@@ -181,9 +181,9 @@ We thank the security researchers and community members who responsibly disclose
 
 For security-related questions or concerns:
 
-- **Security Issues**: security@memory-engine.org
-- **General Questions**: [Create a GitHub Discussion](https://github.com/your-org/memory-engine/discussions)
-- **Documentation Issues**: [Create a GitHub Issue](https://github.com/your-org/memory-engine/issues)
+- **Security Issues**: Contact @Celebr4tion on GitHub or create a private security advisory
+- **General Questions**: [Create a GitHub Discussion](https://github.com/Celebr4tion/memory-engine/discussions)
+- **Documentation Issues**: [Create a GitHub Issue](https://github.com/Celebr4tion/memory-engine/issues)
 
 ## Legal
 

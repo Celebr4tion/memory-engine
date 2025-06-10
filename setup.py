@@ -20,12 +20,12 @@ except FileNotFoundError:
 setup(
     name="memory-engine",
     version="0.1.0",
-    author="Memory Engine Team",
-    author_email="contact@memory-engine.dev",
+    author="Janek Wenning",
+    author_email="noreply@github.com",
     description="A comprehensive knowledge graph and memory management system",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/memory-engine/memory-engine",
+    url="https://github.com/Celebr4tion/memory-engine",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -33,7 +33,7 @@ setup(
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Database :: Database Engines/Servers",
-        "License :: OSI Approved :: MIT License",
+        "License :: Other/Proprietary License",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -75,9 +75,8 @@ setup(
         ],
     },
     project_urls={
-        "Bug Reports": "https://github.com/memory-engine/memory-engine/issues",
-        "Source": "https://github.com/memory-engine/memory-engine",
-        "Documentation": "https://memory-engine.readthedocs.io/",
+        "Bug Reports": "https://github.com/Celebr4tion/memory-engine/issues",
+        "Source": "https://github.com/Celebr4tion/memory-engine",
     },
     keywords="knowledge-graph memory-management ai llm embeddings vector-database graph-database",
 )

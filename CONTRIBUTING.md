@@ -78,7 +78,7 @@ git clone https://github.com/YOUR_USERNAME/memory-engine.git
 cd memory-engine
 
 # Add upstream remote
-git remote add upstream https://github.com/original-org/memory-engine.git
+git remote add upstream https://github.com/Celebr4tion/memory-engine.git
 
 # Install dependencies
 pip install -r requirements.txt
@@ -437,7 +437,7 @@ When contributing security-related code:
 
 **Do not create public issues for security vulnerabilities.**
 
-Report security issues to: security@memory-engine.org
+Report security issues to: @Celebr4tion on GitHub
 
 See [SECURITY.md](SECURITY.md) for detailed security reporting guidelines.
 
@@ -488,8 +488,8 @@ We use [Semantic Versioning](https://semver.org/):
 If you have questions about contributing:
 
 1. Check the [documentation](docs/)
-2. Search [existing issues](https://github.com/your-org/memory-engine/issues)
-3. Create a [new discussion](https://github.com/your-org/memory-engine/discussions)
+2. Search [existing issues](https://github.com/Celebr4tion/memory-engine/issues)
+3. Create a [new discussion](https://github.com/Celebr4tion/memory-engine/discussions)
 4. Contact maintainers through GitHub
 
 Thank you for contributing to Memory Engine! 🚀
