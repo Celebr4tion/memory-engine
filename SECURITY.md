@@ -175,7 +175,7 @@ We thank the security researchers and community members who responsibly disclose
 
 ### Security Contributors
 
-- [Add contributors who have reported security issues]
+- **Janek Wenning (@Celebr4tion)**: Project maintainer and security framework implementation
 
 ## Contact
 

@@ -834,7 +834,7 @@ def monitor_system():
 def monitor_services():
     """Monitor service endpoints."""
     services = [
-        ("JanusGraph", "http://localhost:8184/status"),
+        ("JanusGraph", "http://localhost:8182/status"),
         ("Milvus", "http://localhost:9091/metrics")
     ]
     

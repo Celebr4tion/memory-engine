@@ -40,7 +40,7 @@ Examples:
 ```bash
 ./scripts/test.sh unit -v              # Unit tests with verbose output
 ./scripts/test.sh integration -x       # Integration tests, stop on failure
-./scripts/test.sh --file config        # Run specific test file
+./scripts/test.sh --file test_config_manager.py  # Run specific test file
 ./scripts/test.sh coverage             # Tests with coverage report
 ```
 

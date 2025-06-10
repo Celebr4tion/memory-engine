@@ -301,7 +301,6 @@ This project is licensed under the [Hippocratic License 3.0](LICENSE.md) - an et
 ### Community
 
 - **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
-- **Code of Conduct**: We follow the [Contributor Covenant](CODE_OF_CONDUCT.md)
 - **Security**: Report security issues via [SECURITY.md](SECURITY.md)
 
 ### Status

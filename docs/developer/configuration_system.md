@@ -123,8 +123,8 @@ config.config.performance          # Performance settings
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `EMBEDDING_MODEL` | Embedding model name | `text-embedding-004` |
-| `LLM_MODEL` | LLM model name | `gemini-2.0-flash-thinking-exp` |
-| `FALLBACK_MODEL` | Fallback LLM model | `gemini-2.0-flash-exp` |
+| `LLM_MODEL` | LLM model name | `gemini-2.5-flash` |
+| `FALLBACK_MODEL` | Fallback LLM model | `gemini-2.5-flash` |
 
 #### Logging Configuration
 | Variable | Description | Default |

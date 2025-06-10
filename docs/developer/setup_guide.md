@@ -27,7 +27,7 @@ This guide will help you set up and configure the Memory Engine system for devel
 
 - **Google Gemini API**: For embeddings and knowledge extraction
   - Sign up at [Google AI Studio](https://makersuite.google.com/app/apikey)
-  - Obtain API key for `gemini-embedding-exp-03-07` and `gemini-2.5-pro-exp-03-25`
+  - Obtain API key for `text-embedding-004` and `gemini-2.5-flash`
 
 ### Optional Dependencies
 
@@ -41,7 +41,7 @@ This guide will help you set up and configure the Memory Engine system for devel
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/Celebr4tion/memory-engine.git
 cd memory-engine
 
 # Create virtual environment
@@ -118,7 +118,7 @@ print(f"Retrieved: {retrieved.content}")
 
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/Celebr4tion/memory-engine.git
 cd memory-engine
 
 # Create and activate virtual environment
@@ -193,7 +193,7 @@ vector_store = VectorStoreMilvus(
     host="localhost",
     port=19530,
     collection_name="memory_engine_embeddings",
-    dimension=3072  # For gemini-embedding-exp-03-07
+    dimension=768  # For text-embedding-004
 )
 ```
 
@@ -203,7 +203,7 @@ vector_store = VectorStoreMilvus(
 from memory_core.embeddings.embedding_manager import EmbeddingManager
 
 # The embedding manager automatically uses:
-# - Model: gemini-embedding-exp-03-07
+# - Model: text-embedding-004
 # - API Key: from GEMINI_API_KEY environment variable
 ```
 
@@ -271,7 +271,7 @@ docker run -d --name milvus \
 
 ```bash
 # Test JanusGraph connection
-python test_janusgraph_connection.py
+python tests/integration/test_janusgraph_connection.py
 
 # Test Milvus connection
 python -c "

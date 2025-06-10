@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security middleware with CSRF protection and security headers
 - Comprehensive security test suite with 73+ test cases
 
-## [1.0.0] - 2025-06-09
+## [0.1.0] - 2025-06-09
 
 ### Added
 

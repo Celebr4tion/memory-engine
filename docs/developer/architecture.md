@@ -157,7 +157,7 @@ Raw Text Input
 │  │  │   Knowledge Nodes   │    │    │  │    Embeddings      ││  │
 │  │  │                     │    │    │  │                     ││  │
 │  │  │ • ID               │    │    │  │ • Node ID          ││  │
-│  │  │ • Content          │    │    │  │ • Vector (3072D)   ││  │
+│  │  │ • Content          │    │    │  │ • Vector (768D)    ││  │
 │  │  │ • Source           │    │    │  │ • Timestamp        ││  │
 │  │  │ • Ratings          │    │    │  └─────────────────────┘│  │
 │  │  │ • Metadata         │    │    │                         │  │

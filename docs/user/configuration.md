@@ -210,7 +210,7 @@ vector_store = VectorStoreMilvus(
     host="localhost",              # Milvus server host
     port=19530,                   # Milvus server port
     collection_name="memory_engine_embeddings",  # Collection name
-    dimension=3072                # Embedding dimension
+    dimension=768                # Embedding dimension
 )
 ```
 
@@ -221,7 +221,7 @@ vector_store = VectorStoreMilvus(
 | `host` | str | `"localhost"` | Milvus server hostname |
 | `port` | int | `19530` | Milvus server port |
 | `collection_name` | str | `"memory_engine_embeddings"` | Milvus collection name |
-| `dimension` | int | `3072` | Embedding vector dimension |
+| `dimension` | int | `768` | Embedding vector dimension |
 
 ### Embedding Manager Configuration
 
@@ -230,7 +230,7 @@ from memory_core.embeddings.embedding_manager import EmbeddingManager
 
 # The embedding manager automatically configures:
 # - API Key: from GEMINI_API_KEY environment variable
-# - Model: gemini-embedding-exp-03-07 (3072 dimensions)
+# - Model: text-embedding-004 (768 dimensions)
 # - Task Types: SEMANTIC_SIMILARITY, RETRIEVAL_DOCUMENT, RETRIEVAL_QUERY
 ```
 
@@ -238,7 +238,7 @@ from memory_core.embeddings.embedding_manager import EmbeddingManager
 
 | Model | Dimensions | Task Types | Description |
 |-------|------------|------------|-------------|
-| `gemini-embedding-exp-03-07` | 3072 | All | Current stable model |
+| `text-embedding-004` | 768 | All | Current stable model |
 
 ### Knowledge Extraction Configuration
 
@@ -246,7 +246,7 @@ from memory_core.embeddings.embedding_manager import EmbeddingManager
 from memory_core.ingestion.advanced_extractor import AdvancedExtractor
 
 # Advanced extractor automatically configures:
-# - Model: gemini-2.5-flash-preview-04-17
+# - Model: gemini-2.5-flash
 # - API Key: from GEMINI_API_KEY environment variable
 # - Temperature: 0.4 (for consistent extraction)
 # - Output format: JSON

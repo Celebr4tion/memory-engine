@@ -33,4 +33,4 @@ export ENVIRONMENT=staging      # Uses config.staging.yaml
 export ENVIRONMENT=production   # Uses config.production.yaml
 ```
 
-For more details, see the [Configuration System Documentation](../docs/configuration_system.md).
+For more details, see the [Configuration System Documentation](../docs/developer/configuration_system.md).
