@@ -22,6 +22,7 @@ We aim to eliminate dependency on paid APIs by providing full support for local 
 ## 🎯 What Memory Engine Does
 
 **Input**: Unstructured text, documents, or data
+
 **Output**: Structured knowledge with automatic relationships and semantic search capabilities
 
 ### Core Functions
