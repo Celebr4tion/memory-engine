@@ -1,6 +1,13 @@
 # Security Framework
 
-The Memory Engine includes a comprehensive security framework designed to protect sensitive knowledge data and ensure secure access control. This documentation covers all security features and best practices.
+This document describes the security components available in the Memory Engine project. This is an open-source project developed and maintained by one person as a learning and research tool.
+
+## ⚠️ Important Disclaimers
+
+- **No Security Guarantees**: This project provides security features for educational and development purposes. No guarantees are made regarding the security, reliability, or suitability for production use.
+- **Use at Your Own Risk**: Users are responsible for evaluating the security requirements of their specific use case.
+- **Community Project**: This is a personal open-source project, not a commercial product. No professional support or liability is provided.
+- **Security Review Required**: Before using in any sensitive environment, conduct your own security review and testing.
 
 ## Table of Contents
 
@@ -10,22 +17,23 @@ The Memory Engine includes a comprehensive security framework designed to protec
 - [Data Encryption](#data-encryption)
 - [Audit Logging](#audit-logging)
 - [Security Middleware](#security-middleware)
+- [Storage Backend Security](#storage-backend-security)
 - [Configuration](#configuration)
-- [Best Practices](#best-practices)
+- [Development Guidelines](#development-guidelines)
 
 ## Authentication System
 
 ### Overview
 
-The Memory Engine provides a robust authentication system with multi-factor capabilities, session management, and secure password handling.
+The authentication system provides basic user management and session handling capabilities.
 
-### Key Features
+### Available Features
 
-- **Secure Password Hashing**: Uses bcrypt with configurable rounds
-- **JWT Token Support**: Stateless authentication for API access
-- **Session Management**: Secure session handling with expiration
-- **Account Security**: Automatic lockout after failed attempts
-- **Multi-user Support**: Comprehensive user management
+- Password hashing using bcrypt
+- JWT token support for API access
+- Session management with expiration
+- Account lockout after failed attempts
+- Basic user management operations
 
 ### User Management
 
@@ -38,9 +46,9 @@ auth_manager = AuthManager(secret_key="your-secret-key")
 # Create a new user
 user = auth_manager.create_user(
     username="admin",
-    email="admin@company.com",
+    email="admin@example.com",
     password="SecurePass123!",
-    roles={"super_admin"}
+    roles={"admin"}
 )
 
 # Authenticate user
@@ -52,61 +60,46 @@ session = auth_manager.create_session(authenticated_user, ip_address="192.168.1.
 
 ### Password Requirements
 
+Default password validation includes:
 - Minimum 8 characters
 - At least one uppercase letter
-- At least one lowercase letter
+- At least one lowercase letter  
 - At least one digit
 - At least one special character
-- Configurable complexity rules
+
+Note: These are basic requirements and may not be sufficient for all security contexts.
 
 ### Session Security
 
-- Automatic expiration (configurable)
+- Configurable expiration times
 - IP address tracking
-- User agent validation
-- Secure session refresh
-- Force logout capabilities
+- Basic session refresh
+- Manual logout capabilities
 
 ## Role-Based Access Control (RBAC)
 
 ### Overview
 
-The RBAC system provides fine-grained access control with hierarchical roles and extensive permission management.
+The RBAC system provides basic access control with predefined roles and permissions.
 
-### System Roles
+### Available Roles
 
-#### Super Administrator
-- **Full system access**
-- User management
-- System configuration
-- All knowledge operations
+#### Administrator Roles
+- **super_admin**: Full system access
+- **knowledge_admin**: Knowledge management operations
+- **user_manager**: User account management
 
-#### Knowledge Administrator
-- Knowledge management
-- Privacy level control
-- Quality management
-- Bulk operations
+#### User Roles  
+- **knowledge_editor**: Create and edit knowledge
+- **knowledge_reader**: Read-only access to permitted knowledge
+- **system_monitor**: View system metrics and logs
 
-#### Knowledge Editor
-- Create and edit knowledge
-- Relationship management
-- Basic analytics access
+### Permission System
 
-#### Knowledge Reader
-- Read-only access to permitted knowledge
-- Basic search and query capabilities
-
-#### User Manager
-- User account management
-- Role assignment
-- Session management
-
-#### System Monitor
-- System health monitoring
-- Performance metrics access
-- Audit log viewing
-
-### Custom Roles
+The system includes basic permissions for:
+- Knowledge operations (create, read, update, delete, search)
+- User management (create, update, delete users)
+- System administration (configuration, monitoring)
 
 ```python
 from memory_core.security.rbac import RBACManager, PermissionType
@@ -131,45 +124,17 @@ has_permission = rbac_manager.check_permission(
 )
 ```
 
-### Permission System
-
-The system includes 26+ built-in permissions across categories:
-- **Knowledge Operations**: Create, read, update, delete, search
-- **User Management**: Create, update, delete users
-- **System Administration**: Configuration, monitoring, security
-- **Analytics**: View metrics, generate reports
-- **Quality Control**: Assess quality, resolve contradictions
-
 ## Knowledge Privacy Controls
 
 ### Privacy Levels
 
-The system supports five privacy levels for knowledge resources:
+The system supports five privacy levels:
 
-#### PUBLIC
-- Accessible to all authenticated users
-- No special permissions required
-- Default level for general knowledge
-
-#### INTERNAL
-- Accessible to organization members
-- Requires internal access role
-- Company-wide information
-
-#### CONFIDENTIAL
-- Restricted access with explicit permissions
-- Requires confidential access role
-- Sensitive business information
-
-#### RESTRICTED
-- Highly restricted access
-- Admin approval required
-- Critical security information
-
-#### PRIVATE
-- Owner-only access
-- Personal or highly sensitive data
-- Strictest access controls
+- **PUBLIC**: Accessible to all authenticated users
+- **INTERNAL**: Accessible to organization members
+- **CONFIDENTIAL**: Restricted access with explicit permissions
+- **RESTRICTED**: Highly restricted access
+- **PRIVATE**: Owner-only access
 
 ### Access Control
 
@@ -181,26 +146,17 @@ access_control = KnowledgeAccessControl(rbac_manager)
 # Set privacy level
 access_control.set_privacy_level(
     resource_type="node",
-    resource_id="sensitive_node_123",
+    resource_id="node_123",
     privacy_level=PrivacyLevel.CONFIDENTIAL,
     set_by_user_id="admin_user_id"
 )
 
-# Create specific access rule
-access_control.create_access_rule(
-    resource_type="node",
-    resource_id="sensitive_node_123",
-    permissions={"knowledge:read", "knowledge:update"},
-    user_id="editor_user_id",
-    created_by="admin_user_id"
-)
-
 # Check access
 can_access = access_control.check_access(
-    user_id="editor_user_id",
+    user_id="user_id",
     user_roles={"knowledge_editor"},
     resource_type="node",
-    resource_id="sensitive_node_123",
+    resource_id="node_123",
     permission_type=PermissionType.KNOWLEDGE_READ
 )
 ```
@@ -209,18 +165,17 @@ can_access = access_control.check_access(
 
 ### Overview
 
-The Memory Engine provides comprehensive encryption for data at rest and in transit using industry-standard algorithms.
+The encryption system provides basic data protection capabilities using standard cryptographic libraries.
 
-### Encryption Algorithms
+### Available Algorithms
 
-- **AES-256-GCM**: Default for most data (authenticated encryption)
-- **Fernet**: Symmetric encryption for session data
-- **RSA-2048/4096**: Asymmetric encryption for key exchange
-- **Hybrid Encryption**: RSA + AES for large data
+- **AES-256-GCM**: For most data encryption needs
+- **Fernet**: For session data encryption
+- **RSA-2048/4096**: For key exchange and small data encryption
 
 ### Encryption Scopes
 
-Different data types use appropriate encryption:
+Different data types can use different encryption approaches:
 
 ```python
 from memory_core.security.encryption import EncryptionManager, EncryptionScope
@@ -229,66 +184,43 @@ encryption_manager = EncryptionManager()
 
 # Encrypt user data
 encrypted_user_data = encryption_manager.encrypt_string(
-    "sensitive user information",
+    "user information",
     EncryptionScope.USER_DATA
 )
 
 # Encrypt knowledge content
 encrypted_knowledge = encryption_manager.encrypt_string(
-    "confidential knowledge content",
+    "knowledge content",
     EncryptionScope.KNOWLEDGE_CONTENT
-)
-
-# Encrypt API keys
-encrypted_api_key = encryption_manager.encrypt_string(
-    "sk-1234567890abcdef",
-    EncryptionScope.API_KEYS
 )
 ```
 
 ### Key Management
 
-- **Automatic Key Generation**: Secure random key generation
-- **Key Rotation**: Configurable automatic rotation (default: 90 days)
-- **Key Versioning**: Multiple key versions for data migration
-- **Backup Keys**: Secure key backup and recovery
-- **Hardware Security**: Support for HSM integration
+- Automatic key generation
+- Configurable key rotation (default: 90 days)
+- Key versioning support
+- Basic key backup capabilities
 
-### Key Rotation
-
-```python
-# Manual key rotation
-new_key = encryption_manager.rotate_key(EncryptionScope.USER_DATA)
-
-# Automatic rotation for expired keys
-rotated_keys = encryption_manager.auto_rotate_expired_keys()
-
-# Check expiring keys
-expiring_keys = encryption_manager.check_key_expiration()
-```
+**Note**: Key management is basic and may require additional security measures for sensitive use cases.
 
 ## Audit Logging
 
 ### Overview
 
-Comprehensive audit logging tracks all security-relevant events for compliance and security monitoring.
+The audit logging system tracks security-related events for monitoring and compliance purposes.
 
 ### Audit Categories
 
-- **Authentication**: Login attempts, session management
-- **Authorization**: Permission checks, access denials
-- **Knowledge Access**: Data reading, querying
-- **Knowledge Modification**: Data creation, updates, deletion
-- **Privacy Control**: Privacy level changes, access rule modifications
-- **User Management**: User creation, role changes
-- **System Events**: Configuration changes, system operations
-- **Security Incidents**: Failed attempts, suspicious activity
-- **Compliance**: Regulatory compliance events
-- **Error Events**: Security-related errors
-- **Performance**: Security performance metrics
-- **Integration**: External system interactions
+- Authentication events (login attempts, session management)
+- Authorization events (permission checks, access denials)
+- Knowledge access and modification events
+- Privacy control changes
+- User management operations
+- System configuration changes
+- Security incidents
 
-### Audit Implementation
+### Implementation
 
 ```python
 from memory_core.security.audit import AuditLogger, AuditLevel, AuditCategory
@@ -297,7 +229,7 @@ audit_logger = AuditLogger()
 
 # Log authentication event
 audit_logger.log_authentication(
-    "User login successful",
+    "User login attempt",
     user_id="user_123",
     success=True,
     ip_address="192.168.1.100",
@@ -309,33 +241,15 @@ audit_logger.log_knowledge_access(
     "Knowledge node accessed",
     user_id="user_123",
     resource_id="node_456",
-    session_id="session_789",
-    details={"query": "search algorithms"}
-)
-
-# Log security incident
-audit_logger.log_security_incident(
-    "Multiple failed login attempts",
-    user_id="user_123",
-    severity="high",
-    ip_address="192.168.1.100",
-    details={"attempts": 5, "timeframe": "5 minutes"}
+    session_id="session_789"
 )
 ```
-
-### Security Monitoring
-
-- **Threat Detection**: Automatic detection of suspicious patterns
-- **Risk Scoring**: Dynamic risk assessment for events
-- **Alerting**: Real-time security alerts
-- **Compliance Reporting**: Automated compliance reports
-- **Correlation**: Event correlation for threat analysis
 
 ## Security Middleware
 
 ### Flask Integration
 
-The security framework includes Flask middleware for web applications:
+Basic security middleware for Flask applications:
 
 ```python
 from memory_core.security.middleware import SecurityMiddleware
@@ -355,31 +269,71 @@ def protected_endpoint():
 @security_middleware.require_permission(PermissionType.SYSTEM_ADMIN)
 def admin_endpoint():
     return "Admin content"
-
-# Role-based decorator
-@app.route('/editor')
-@security_middleware.require_role("knowledge_editor")
-def editor_endpoint():
-    return "Editor content"
 ```
 
 ### Security Headers
 
-Automatic security headers:
+Basic security headers are applied:
 - Content Security Policy (CSP)
 - X-Frame-Options
 - X-Content-Type-Options
 - Strict-Transport-Security
 - X-XSS-Protection
 
-### Rate Limiting
+**Note**: Default configurations may not be suitable for all deployment scenarios.
+
+## Storage Backend Security
+
+### Overview (New in v0.2.0)
+
+The modular storage backend system introduces different security considerations for each storage type:
+
+### JanusGraph Backend
+- Network-based database requiring secure connections
+- Consider using TLS for database connections
+- Network access controls recommended
+- Database authentication and authorization
+
+### SQLite Backend
+- File-based storage with local file permissions
+- File encryption at OS level may be needed
+- Backup security considerations
+- Single-user focused security model
+
+### JSON File Backend
+- Human-readable storage format
+- File system permissions crucial
+- Consider encryption for sensitive data
+- Easy to inspect but also easy to modify
+
+### Security Recommendations by Backend
 
 ```python
-# Configure rate limiting
-@security_middleware.rate_limit(requests=100, window=3600)  # 100 req/hour
-def api_endpoint():
-    return "Rate limited endpoint"
+# Configuration example for secure backends
+storage_config = {
+    "janusgraph": {
+        "host": "localhost",  # Use secure network
+        "port": 8182,
+        # "tls_enabled": True,  # Configure TLS if available
+        # "auth_username": "user",  # Database authentication
+        # "auth_password": "pass"
+    },
+    "sqlite": {
+        "database_path": "./secure/knowledge.db",  # Secure directory
+        # Consider OS-level encryption
+    },
+    "json_file": {
+        "directory": "./secure/graph",  # Secure directory with proper permissions
+        "pretty_print": False  # Less readable for security
+    }
+}
 ```
+
+### Backend-Specific Considerations
+
+- **JanusGraph**: Shared database requires network security and database-level access controls
+- **SQLite**: Single-user database relies on file system security
+- **JSON File**: Plaintext storage requires careful file system security and encryption
 
 ## Configuration
 
@@ -395,125 +349,88 @@ AUTH_MAX_FAILED_ATTEMPTS=5
 # Encryption
 ENCRYPTION_DEFAULT_ALGORITHM=AES_256_GCM
 ENCRYPTION_KEY_ROTATION_DAYS=90
-ENCRYPTION_ENABLE_COMPRESSION=true
 
 # Audit Logging
 AUDIT_LOG_LEVEL=INFO
-AUDIT_ENABLE_COMPLIANCE=true
 AUDIT_RETENTION_DAYS=365
 
-# Security
-SECURITY_ENABLE_RATE_LIMITING=true
-SECURITY_ENABLE_CSRF_PROTECTION=true
-SECURITY_ENABLE_SECURITY_HEADERS=true
+# Storage Security (New in v0.2.0)
+STORAGE_BACKEND=janusgraph  # or sqlite, json_file
 ```
 
 ### Configuration File
 
 ```yaml
+# Storage configuration affects security model
+storage:
+  graph:
+    backend: "janusgraph"  # Choose based on security requirements
+    janusgraph:
+      host: "localhost"
+      port: 8182
+    sqlite:
+      database_path: "./data/knowledge.db"  # Secure path
+    json_file:
+      directory: "./data/graph"  # Secure directory
+      pretty_print: false  # Less readable
+
 security:
   authentication:
     secret_key: "${AUTH_SECRET_KEY}"
     token_expiry: 3600
     session_timeout: 7200
     max_failed_attempts: 5
-    password_requirements:
-      min_length: 8
-      require_uppercase: true
-      require_lowercase: true
-      require_digits: true
-      require_special: true
   
   encryption:
     default_algorithm: "AES_256_GCM"
     key_rotation_days: 90
     enable_compression: true
-    scopes:
-      user_data:
-        algorithm: "AES_256_GCM"
-        required: true
-      knowledge_content:
-        algorithm: "AES_256_GCM"
-        required: false
-        compress: true
   
   audit:
     log_level: "INFO"
-    enable_compliance: true
     retention_days: 365
-    categories:
-      - "authentication"
-      - "authorization"
-      - "knowledge_access"
-      - "security_incident"
 ```
 
-## Best Practices
+## Development Guidelines
 
-### Authentication
+### Security Considerations
 
-1. **Strong Passwords**: Enforce password complexity requirements
-2. **Regular Rotation**: Implement password rotation policies
-3. **Multi-Factor**: Consider implementing MFA for high-privilege accounts
-4. **Session Management**: Use secure session handling
-5. **Token Security**: Protect JWT tokens and implement proper expiration
-
-### Authorization
-
-1. **Principle of Least Privilege**: Grant minimum required permissions
-2. **Role Hierarchy**: Use role inheritance effectively
-3. **Regular Reviews**: Audit permissions regularly
-4. **Separation of Duties**: Implement proper role separation
-
-### Data Protection
-
-1. **Encryption**: Encrypt sensitive data at rest and in transit
-2. **Key Management**: Implement proper key rotation and backup
-3. **Privacy Levels**: Use appropriate privacy levels for data classification
-4. **Access Controls**: Implement fine-grained access controls
-
-### Monitoring
-
-1. **Audit Everything**: Log all security-relevant events
-2. **Real-time Monitoring**: Implement real-time security monitoring
-3. **Incident Response**: Have incident response procedures
-4. **Compliance**: Maintain compliance with regulatory requirements
-
-### Development
-
-1. **Security Reviews**: Conduct security code reviews
-2. **Testing**: Implement comprehensive security testing
+1. **Code Review**: Review security-related code changes
+2. **Testing**: Test security features thoroughly
 3. **Dependencies**: Keep security dependencies updated
-4. **Secrets Management**: Never hardcode secrets in code
+4. **Secrets**: Never commit secrets to version control
+5. **Validation**: Validate all user inputs
+6. **Error Handling**: Avoid revealing sensitive information in errors
 
-## Security Examples
+### Deployment Security
 
-For complete implementation examples, see:
-- `examples/security_example.py` - Comprehensive security framework demonstration
-- `tests/test_security_*.py` - Security test suites for reference
+1. **Environment**: Use appropriate security configurations for deployment environment
+2. **Network**: Implement network security controls
+3. **File Permissions**: Set appropriate file and directory permissions
+4. **Monitoring**: Monitor security events and logs
+5. **Updates**: Keep the system and dependencies updated
 
-## Troubleshooting
+### Limitations
 
-### Common Issues
+- This is educational/research software
+- Security features are basic implementations
+- Not audited by security professionals
+- May contain vulnerabilities
+- Not suitable for high-security environments without additional hardening
 
-#### Authentication Failures
-- Check password requirements
-- Verify user account status
-- Check for account lockouts
+## Examples
 
-#### Permission Denied
-- Verify user roles
-- Check permission assignments
-- Review privacy level settings
+For implementation examples, see:
+- `examples/security_example.py` - Basic security feature demonstration
+- `tests/test_security_*.py` - Security test suites
 
-#### Encryption Errors
-- Check encryption keys
-- Verify algorithm support
-- Review key rotation status
+## Support
 
-#### Audit Log Issues
-- Check log file permissions
-- Verify audit configuration
-- Review log retention settings
+This is a community project with no professional support. For questions or issues:
 
-For additional troubleshooting, see the main troubleshooting guide in `docs/user/troubleshooting.md`.
+1. Check the documentation
+2. Review the source code
+3. Open an issue on GitHub for bugs or feature requests
+4. Contribute improvements via pull requests
+
+**Remember**: Evaluate all security features for your specific use case and conduct your own security testing before any production use.

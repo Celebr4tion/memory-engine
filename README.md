@@ -1,10 +1,14 @@
 # Memory Engine
 
-A sophisticated semantic knowledge management system that combines graph-based knowledge representation with modern vector embeddings for intelligent information storage, retrieval, and synthesis.
+A semantic knowledge management system that combines graph-based knowledge representation with vector embeddings for information storage, retrieval, and synthesis.
 
 ## 🌟 Overview
 
-Memory Engine is a comprehensive knowledge management platform that transforms unstructured text into a structured, searchable knowledge graph. By combining the relationship modeling power of graph databases with the semantic understanding of vector embeddings, it creates a foundation for building intelligent applications that can understand, connect, and reason about information.
+Memory Engine is an experimental knowledge management system that transforms unstructured text into a structured, searchable knowledge graph. It combines graph databases with vector embeddings to create a foundation for applications that can understand, connect, and reason about information.
+
+## ⚠️ Important Notice
+
+**This is a personal open-source project developed for learning and research purposes. No guarantees are made regarding reliability, security, or suitability for production use. Use at your own risk.**
 
 ## 🚧 Project Status
 
@@ -36,7 +40,7 @@ We aim to eliminate dependency on paid APIs by providing full support for local 
 - 🧠 **Intelligent Knowledge Extraction**: Uses Google Gemini API to extract structured knowledge from raw text
 - 🕸️ **Automatic Relationship Discovery**: Detects and creates relationships between knowledge entities
 - 🔍 **Semantic Search**: Vector-based similarity search for contextual information retrieval
-- 🔐 **Enterprise Security**: Comprehensive authentication, RBAC, encryption, and audit logging
+- 🔐 **Basic Security Features**: Authentication, RBAC, encryption, and audit logging (educational purposes)
 - 🛡️ **Privacy Controls**: Fine-grained knowledge privacy levels and access control
 - 📊 **Quality Enhancement**: Automated quality assessment and contradiction resolution
 - 📚 **Version Control**: Complete change tracking and rollback capabilities
