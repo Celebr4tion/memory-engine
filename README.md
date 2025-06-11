@@ -8,7 +8,7 @@ Memory Engine is a comprehensive knowledge management platform that transforms u
 
 ## 🚧 Project Status
 
-**This project is currently in active development (v0.1.0) and should be considered experimental.**
+**This project is currently in active development (v0.2.0) and should be considered experimental.**
 
 ### Vision
 
@@ -309,6 +309,7 @@ This project is licensed under the [Hippocratic License 3.0](LICENSE.md) - an et
 ### Community
 
 - **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
+- **Code of Conduct**: Please read our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 - **Security**: Report security issues via [SECURITY.md](SECURITY.md)
 
 ### Status

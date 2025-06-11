@@ -7,22 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Comprehensive security framework with authentication, RBAC, and encryption
-- Knowledge privacy controls with five privacy levels
-- Comprehensive audit logging for compliance and security monitoring
-- Advanced monitoring and observability features
-- Performance optimization with caching and bulk processing
-- Quality enhancement system with contradiction resolution and gap detection
+## [0.2.0] - 2025-01-06
 
-### Security
-- Multi-user authentication system with bcrypt password hashing
-- JWT token support for stateless API authentication
-- Role-Based Access Control (RBAC) with hierarchical permissions
-- End-to-end encryption using AES-256-GCM, Fernet, and RSA algorithms
-- Automatic key rotation and secure key management
-- Security middleware with CSRF protection and security headers
-- Comprehensive security test suite with 73+ test cases
+### Added
+- **Modular Storage Backends**: Multiple graph storage options for different deployment needs
+  - JanusGraph backend for production-grade distributed graph storage
+  - SQLite backend for single-user deployments with SQL capabilities
+  - JSON file backend for development, testing, and human-readable storage
+- **Storage Factory System**: Configuration-driven backend selection with runtime availability checking
+- **Unified Storage Interface**: GraphStorageInterface ensuring consistent behavior across backends
+- **Enhanced Configuration**: New storage configuration section with backend-specific options
+- **Comprehensive Storage Documentation**: Developer guide covering all backends and migration strategies
+
+### Changed
+- **Configuration System**: Extended with new storage configuration options while maintaining backwards compatibility
+- **JanusGraph Integration**: Refactored to implement new modular storage interface
+- **Storage Architecture**: Moved from hardcoded JanusGraph to pluggable backend system
+
+### Technical Improvements
+- **Interface Compliance**: All storage backends implement the same comprehensive interface
+- **Performance Optimizations**: Built-in caching and indexing for JSON and SQLite backends
+- **Testing Coverage**: Comprehensive test suite for all storage backends with graceful dependency handling
+- **Migration Support**: Easy switching between storage backends with consistent API
+
+### Developer Experience
+- **Storage Backend Selection**: Choose the right storage for your deployment scenario
+- **Development Workflow**: JSON backend for rapid prototyping and debugging
+- **Production Deployment**: JanusGraph backend for scalable production systems
+- **Testing Simplification**: Lightweight backends for automated testing
 
 ## [0.1.0] - 2025-06-09
 
@@ -187,21 +199,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Contributors
 
-We thank all contributors who have helped build Memory Engine:
-
-- **Janek Wenning**: Initial architecture and implementation
-- **Security Team**: Security framework design and implementation
-- **Quality Assurance**: Testing framework and quality validation
-- **Documentation Team**: Comprehensive documentation and examples
+- **Janek Wenning**: Project maintainer and primary developer
 
 ### Acknowledgments
 
-Special thanks to:
-- **JanusGraph Community**: For the robust graph database foundation
-- **Milvus Community**: For the high-performance vector database
-- **OpenAI**: For GPT models and API integration
-- **Hugging Face**: For transformer models and embedding capabilities
-- **Open Source Community**: For the foundational libraries and tools
+This project builds upon excellent open source technologies:
+- **JanusGraph**: Graph database foundation
+- **Milvus**: Vector database for semantic search
+- **Google Gemini**: LLM API for knowledge extraction
+- **FastAPI**: Web framework for API development
 
 ---
 
@@ -209,6 +215,7 @@ Special thanks to:
 
 | Version | Release Date | Description |
 |---------|--------------|-------------|
+| 0.2.0   | 2025-01-06   | Modular storage backends and configuration system |
 | 0.1.0   | 2025-06-09   | Initial alpha release - experimental |
 
 ## Support

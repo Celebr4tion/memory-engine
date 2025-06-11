@@ -43,6 +43,19 @@ Demonstrates:
 
 **Run**: `python examples/mcp_client_example.py`
 
+### 🗄️ [storage_backends_example.py](storage_backends_example.py)
+**Modular storage backend usage (New in v0.2.0)**
+
+Demonstrates:
+- Using different storage backends (JanusGraph, SQLite, JSON file)
+- Backend availability checking and selection
+- Performance comparison across backends
+- Data migration between storage systems
+- Configuration for different deployment scenarios
+- Backend-specific features and optimizations
+
+**Run**: `python examples/storage_backends_example.py`
+
 ## Prerequisites
 
 Before running the examples:
@@ -52,16 +65,21 @@ Before running the examples:
    export GEMINI_API_KEY="your-api-key-here"
    ```
 
-2. **Start infrastructure**:
+2. **Start infrastructure** (for JanusGraph/Milvus backends):
    ```bash
    cd docker
    docker-compose up -d
    # Wait 2-3 minutes for services to initialize
    ```
+   
+   **Note**: For JSON file or SQLite backends, no additional infrastructure is needed.
 
 3. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
+   
+   # Optional: For SQLite backend support
+   pip install aiosqlite
    ```
 
 ## Running Examples

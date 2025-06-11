@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "memory-engine"
-version = "0.1.0"
+version = "0.2.0"
 authors = [
     {name = "Janek Wenning", email = "noreply@github.com"},
 ]
-description = "A comprehensive knowledge graph and memory management system"
+description = "A comprehensive knowledge graph and memory management system with modular storage backends"
 readme = "README.md"
 license = {file = "LICENSE.md"}
 requires-python = ">=3.8"
@@ -58,6 +58,9 @@ docs = [
 ]
 mcp = [
     "mcp>=0.1.0",
+]
+sqlite = [
+    "aiosqlite>=0.17.0",
 ]
 
 [project.urls]

@@ -17,23 +17,9 @@ Thank you for your interest in contributing to Memory Engine! This document prov
 
 ## Code of Conduct
 
-By participating in this project, you agree to abide by our Code of Conduct. We are committed to providing a welcoming and inclusive environment for all contributors.
+By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md). We are committed to providing a welcoming and inclusive environment for all contributors.
 
-### Our Standards
-
-**Positive behaviors include:**
-- Using welcoming and inclusive language
-- Being respectful of differing viewpoints and experiences
-- Gracefully accepting constructive criticism
-- Focusing on what is best for the community
-- Showing empathy towards other community members
-
-**Unacceptable behaviors include:**
-- Harassment, discrimination, or exclusionary behavior
-- Trolling, insulting/derogatory comments, and personal attacks
-- Public or private harassment
-- Publishing others' private information without permission
-- Other conduct which could reasonably be considered inappropriate
+Please read the full [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for detailed guidelines on community standards and enforcement procedures.
 
 ## Getting Started
 

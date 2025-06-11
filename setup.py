@@ -19,10 +19,10 @@ except FileNotFoundError:
 
 setup(
     name="memory-engine",
-    version="0.1.0",
+    version="0.2.0",
     author="Janek Wenning",
     author_email="noreply@github.com",
-    description="A comprehensive knowledge graph and memory management system",
+    description="A comprehensive knowledge graph and memory management system with modular storage backends",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Celebr4tion/memory-engine",
@@ -60,6 +60,9 @@ setup(
         ],
         "mcp": [
             "mcp>=0.1.0",
+        ],
+        "sqlite": [
+            "aiosqlite>=0.17.0",
         ],
     },
     entry_points={

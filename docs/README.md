@@ -13,7 +13,8 @@ docs/
 ├── developer/                  # Developer documentation
 │   ├── setup_guide.md          # Development environment setup
 │   ├── architecture.md         # System architecture overview
-│   └── configuration_system.md # Advanced configuration system
+│   ├── configuration_system.md # Advanced configuration system
+│   └── storage_backends.md     # Storage backend guide
 └── api/                        # API documentation
     └── api_reference.md         # Complete API reference
 ```
@@ -28,6 +29,7 @@ docs/
 1. [Setup Guide](developer/setup_guide.md) - Development environment setup
 2. [Architecture](developer/architecture.md) - System architecture overview
 3. [Configuration System](developer/configuration_system.md) - Advanced configuration
+4. [Storage Backends](developer/storage_backends.md) - Storage backend selection and usage
 
 ### For API Reference
 1. [API Reference](api/api_reference.md) - Complete API documentation
