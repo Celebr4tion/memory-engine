@@ -13,7 +13,30 @@ database:
   pool_timeout: 30
   pool_recycle: 3600
 
-# JanusGraph Configuration
+# Storage Configuration
+storage:
+  graph:
+    backend: "janusgraph"  # Options: "janusgraph", "json_file", "sqlite"
+    
+    # JanusGraph Configuration
+    janusgraph:
+      host: "localhost"
+      port: 8182
+      use_ssl: false
+      connection_timeout: 30
+      max_retry_attempts: 3
+      retry_delay: 1.0
+    
+    # JSON File Backend Configuration
+    json_file:
+      directory: "./data/graph"
+      pretty_print: true
+    
+    # SQLite Backend Configuration
+    sqlite:
+      database_path: "./data/knowledge.db"
+
+# Legacy JanusGraph Configuration (for backwards compatibility)
 janusgraph:
   host: "localhost"
   port: 8182

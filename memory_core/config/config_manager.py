@@ -173,6 +173,34 @@ class PerformanceConfig:
 
 
 @dataclass
+class JsonFileStorageConfig:
+    """JSON file storage configuration"""
+    directory: str = "./data/graph"
+    pretty_print: bool = True
+
+
+@dataclass
+class SqliteStorageConfig:
+    """SQLite storage configuration"""
+    database_path: str = "./data/knowledge.db"
+
+
+@dataclass
+class GraphStorageConfig:
+    """Graph storage configuration"""
+    backend: str = "janusgraph"  # Options: "janusgraph", "json_file", "sqlite"
+    janusgraph: JanusGraphConfig = field(default_factory=JanusGraphConfig)
+    json_file: JsonFileStorageConfig = field(default_factory=JsonFileStorageConfig)
+    sqlite: SqliteStorageConfig = field(default_factory=SqliteStorageConfig)
+
+
+@dataclass
+class StorageConfig:
+    """Storage layer configuration"""
+    graph: GraphStorageConfig = field(default_factory=GraphStorageConfig)
+
+
+@dataclass
 class AppConfig:
     """Main application configuration"""
     environment: Environment = Environment.DEVELOPMENT
@@ -181,7 +209,8 @@ class AppConfig:
     
     # Sub-configurations
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
-    janusgraph: JanusGraphConfig = field(default_factory=JanusGraphConfig)
+    storage: StorageConfig = field(default_factory=StorageConfig)
+    janusgraph: JanusGraphConfig = field(default_factory=JanusGraphConfig)  # For backwards compatibility
     vector_store: VectorStoreConfig = field(default_factory=VectorStoreConfig)
     embedding: EmbeddingConfig = field(default_factory=EmbeddingConfig)
     llm: LLMConfig = field(default_factory=LLMConfig)
