@@ -1042,7 +1042,7 @@ vector_store = VectorStoreMilvus(
     host="localhost",
     port=19530,
     collection_name="memory_engine_embeddings",
-    dimension=768  # For text-embedding-004
+    dimension=768  # For gemini-embedding-exp-03-07
 )
 
 # Connect

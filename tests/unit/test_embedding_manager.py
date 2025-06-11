@@ -40,7 +40,7 @@ class TestEmbeddingManagerClass(unittest.TestCase):
         self.sample_node_id = "test_node_1"
         
         # Mock embedding result
-        self.mock_embedding = np.random.rand(768).tolist()  # text-embedding-004 dimension
+        self.mock_embedding = np.random.rand(768).tolist()  # gemini-embedding-exp-03-07 dimension
     
     def tearDown(self):
         """Clean up after each test method."""

@@ -230,7 +230,7 @@ from memory_core.embeddings.embedding_manager import EmbeddingManager
 
 # The embedding manager automatically configures:
 # - API Key: from GEMINI_API_KEY environment variable
-# - Model: text-embedding-004 (768 dimensions)
+# - Model: gemini-embedding-exp-03-07 (768 dimensions)
 # - Task Types: SEMANTIC_SIMILARITY, RETRIEVAL_DOCUMENT, RETRIEVAL_QUERY
 ```
 
@@ -238,7 +238,7 @@ from memory_core.embeddings.embedding_manager import EmbeddingManager
 
 | Model | Dimensions | Task Types | Description |
 |-------|------------|------------|-------------|
-| `text-embedding-004` | 768 | All | Current stable model |
+| `gemini-embedding-exp-03-07` | 768 | All | Current stable model |
 
 ### Knowledge Extraction Configuration
 

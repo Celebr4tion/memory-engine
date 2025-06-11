@@ -63,7 +63,7 @@ vector_store:
 
 # Embedding Configuration
 embedding:
-  model: "text-embedding-004"
+  model: "gemini-embedding-exp-03-07"
   dimension: 768
   batch_size: 32
   max_retries: 3

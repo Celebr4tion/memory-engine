@@ -122,7 +122,7 @@ config.config.performance          # Performance settings
 #### Model Configuration
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `EMBEDDING_MODEL` | Embedding model name | `text-embedding-004` |
+| `EMBEDDING_MODEL` | Embedding model name | `gemini-embedding-exp-03-07` |
 | `LLM_MODEL` | LLM model name | `gemini-2.5-flash` |
 | `FALLBACK_MODEL` | Fallback LLM model | `gemini-2.5-flash` |
 

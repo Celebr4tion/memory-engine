@@ -27,7 +27,7 @@ This guide will help you set up and configure the Memory Engine system for devel
 
 - **Google Gemini API**: For embeddings and knowledge extraction
   - Sign up at [Google AI Studio](https://makersuite.google.com/app/apikey)
-  - Obtain API key for `text-embedding-004` and `gemini-2.5-flash`
+  - Obtain API key for `gemini-embedding-exp-03-07` and `gemini-2.5-flash`
 
 ### Optional Dependencies
 
@@ -193,7 +193,7 @@ vector_store = VectorStoreMilvus(
     host="localhost",
     port=19530,
     collection_name="memory_engine_embeddings",
-    dimension=768  # For text-embedding-004
+    dimension=768  # For gemini-embedding-exp-03-07
 )
 ```
 
@@ -203,7 +203,7 @@ vector_store = VectorStoreMilvus(
 from memory_core.embeddings.embedding_manager import EmbeddingManager
 
 # The embedding manager automatically uses:
-# - Model: text-embedding-004
+# - Model: gemini-embedding-exp-03-07
 # - API Key: from GEMINI_API_KEY environment variable
 ```
 
