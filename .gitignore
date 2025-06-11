@@ -164,3 +164,4 @@ docker/volumes/
 # Claude Code
 .claude/
 .claude
+CLAUDE.md
