@@ -1,209 +1,194 @@
 # Security Policy
 
+## ⚠️ Important Notice
+
+**This is a personal open-source project developed for educational and research purposes. No security guarantees are provided. Users are responsible for evaluating security requirements for their specific use case.**
+
 ## Overview
 
-The Memory Engine project takes security seriously. We appreciate the security community's efforts to improve the security of open source projects and welcome responsible disclosure of security vulnerabilities.
+This document describes the security aspects of the Memory Engine project. As an experimental open-source project, users should conduct their own security evaluation before use in any sensitive environment.
 
 ## Supported Versions
 
-We provide security updates for the following versions of Memory Engine:
+Security updates are provided on a best-effort basis:
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.1.x   | :white_check_mark: |
-| < 0.1   | :x:                |
+| Version | Status                |
+| ------- | -------------------- |
+| 0.2.x   | Current development  |
+| 0.1.x   | Legacy               |
+| < 0.1   | No support           |
 
-## Security Features
+**Note**: This is a personal project with no formal support commitments.
 
-Memory Engine includes comprehensive security features designed to protect knowledge data and ensure secure access:
+## Available Security Features
+
+Memory Engine includes basic security components for educational purposes:
 
 ### 🔐 Authentication & Authorization
-- Multi-user authentication with secure password hashing (bcrypt)
-- Role-Based Access Control (RBAC) with hierarchical permissions
-- JWT token support for stateless API authentication
-- Session management with automatic expiration
-- Account lockout after failed attempts
+- Basic user authentication with password hashing (bcrypt)
+- Role-Based Access Control (RBAC) with predefined permissions
+- JWT token support for API authentication
+- Session management with configurable expiration
+- Account lockout after failed login attempts
 
 ### 🛡️ Data Protection
-- End-to-end encryption using industry-standard algorithms (AES-256-GCM, RSA-2048/4096)
-- Privacy levels for knowledge classification (PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED, PRIVATE)
-- Automatic key rotation and secure key management
-- Data integrity verification
+- Basic encryption using standard libraries (AES-256-GCM, RSA-2048/4096)
+- Privacy levels for knowledge classification
+- Configurable key rotation
+- Basic data integrity checks
 
-### 📊 Monitoring & Compliance
-- Comprehensive audit logging for all security events
-- Real-time security monitoring and threat detection
-- Compliance reporting capabilities
-- Performance monitoring with security metrics
+### 📊 Monitoring & Logging
+- Audit logging for security events
+- Basic monitoring capabilities
+- Configurable log retention
 
 ### 🌐 Web Security
-- Security middleware with automatic security headers
-- CSRF protection and XSS prevention
-- Rate limiting to prevent abuse
-- Input validation and sanitization
+- Basic security middleware for Flask applications
+- Standard security headers
+- Basic rate limiting capabilities
+- Input validation helpers
 
-## Reporting a Vulnerability
+### 🗄️ Storage Backend Security (New in v0.2.0)
+- **JanusGraph**: Network-based storage requiring external security measures
+- **SQLite**: File-based storage relying on OS file permissions
+- **JSON File**: Plaintext storage requiring careful file system security
 
-We encourage responsible disclosure of security vulnerabilities. If you discover a security issue, please follow these steps:
+## Reporting Security Issues
 
-### 1. **DO NOT** create a public GitHub issue
+### For Educational/Research Use
 
-Security vulnerabilities should not be reported through public GitHub issues as this could put users at risk.
+If you discover security issues while studying or experimenting with the code:
 
-### 2. Report privately
+1. **Feel free to open a public GitHub issue** for educational discussion
+2. **Contact @Celebr4tion** for private discussion if needed
+3. **Contribute fixes** via pull requests
 
-Contact the project maintainer directly via GitHub: **@Celebr4tion** or create a private security advisory on GitHub.
+### For Production Use (Not Recommended)
 
-Include the following information:
-- **Description**: Clear description of the vulnerability
-- **Impact**: Potential impact and severity assessment
-- **Reproduction**: Step-by-step instructions to reproduce the issue
-- **Affected Versions**: Which versions are affected
-- **Suggested Fix**: If you have suggestions for fixing the vulnerability
+If you're using this in a sensitive environment despite our recommendations:
 
-### 3. Response Timeline
+1. **Do not** use public GitHub issues for security vulnerabilities
+2. **Contact @Celebr4tion** privately on GitHub
+3. **Include**: Description, reproduction steps, affected versions
 
-We aim to respond to security reports according to the following timeline:
+### Response Expectations
 
-- **Initial Response**: Within 48 hours of report
-- **Assessment**: Within 7 days - we'll assess the report and severity
-- **Resolution**: Within 30 days for critical issues, 90 days for lower severity
-- **Disclosure**: Coordinated disclosure after fix is available
+As a personal project:
+- **Response time**: Best effort, no guarantees
+- **Fix timeline**: Depends on maintainer availability
+- **No formal SLA**: This is volunteer work
 
-### 4. Severity Classification
+## Security Limitations
 
-We use the following severity classification:
+### Known Limitations
 
-#### Critical (CVSS 9.0-10.0)
-- Remote code execution
-- Authentication bypass
-- Privilege escalation to admin
-- Data exfiltration of all knowledge
+- **No professional security audit**: Code has not been audited by security professionals
+- **Basic implementations**: Security features are educational implementations
+- **Single maintainer**: Limited resources for security response
+- **Experimental code**: May contain unknown vulnerabilities
+- **No warranty**: No guarantees about security effectiveness
 
-#### High (CVSS 7.0-8.9)
-- Significant data exposure
-- Privilege escalation
-- Authentication weaknesses
-- Denial of service with permanent impact
+### Not Suitable For
 
-#### Medium (CVSS 4.0-6.9)
-- Limited data exposure
-- Minor privilege escalation
-- Input validation issues
-- Temporary denial of service
+- Production systems with sensitive data
+- High-security environments
+- Compliance-critical applications
+- Commercial deployments without additional hardening
 
-#### Low (CVSS 0.1-3.9)
-- Information disclosure with minimal impact
-- Minor security misconfigurations
-- Issues requiring significant user interaction
+## Security Guidelines for Users
 
-## Security Best Practices for Users
+### Development/Learning Use
 
-When deploying Memory Engine, follow these security best practices:
+1. **Test Environment**: Use only in test/development environments
+2. **No Real Data**: Don't use with real sensitive information
+3. **Learning**: Great for understanding security concepts
+4. **Experimentation**: Safe for security research and learning
 
-### 🔧 Configuration
+### If You Must Use in Production (Not Recommended)
 
-1. **Environment Variables**: Never commit secrets to version control
-   ```bash
-   # Use strong, unique secrets
-   AUTH_SECRET_KEY=<strong-random-key>
-   ENCRYPTION_MASTER_KEY=<encryption-key>
-   ```
+1. **Security Review**: Conduct thorough security review
+2. **Additional Hardening**: Implement additional security measures
+3. **Monitoring**: Implement comprehensive monitoring
+4. **Backup Strategy**: Secure backup and recovery procedures
+5. **Regular Updates**: Keep dependencies updated
+6. **Network Security**: Implement proper network controls
 
-2. **Database Security**: Secure your graph database and vector store
-   - Use authentication for JanusGraph and Milvus
-   - Enable encryption in transit
-   - Regular security updates
+### Configuration Security
 
-3. **Network Security**: 
-   - Use HTTPS in production
-   - Implement proper firewall rules
-   - Consider VPN for internal access
+```bash
+# Use strong, unique secrets
+AUTH_SECRET_KEY=<generate-strong-random-key>
+ENCRYPTION_KEY=<generate-encryption-key>
 
-### 👥 User Management
+# Choose storage backend based on security needs
+STORAGE_BACKEND=janusgraph  # Network-based, shared
+# STORAGE_BACKEND=sqlite    # File-based, single-user
+# STORAGE_BACKEND=json_file # Plaintext, development only
+```
 
-1. **Strong Passwords**: Enforce password complexity requirements
-2. **Role Assignment**: Follow principle of least privilege
-3. **Regular Audits**: Review user accounts and permissions regularly
-4. **Session Management**: Configure appropriate session timeouts
+### Storage Backend Considerations
 
-### 📋 Monitoring
-
-1. **Audit Logs**: Enable comprehensive audit logging
-2. **Security Monitoring**: Implement real-time security monitoring
-3. **Backup Security**: Secure and encrypt backups
-4. **Incident Response**: Have an incident response plan
-
-### 🔄 Updates
-
-1. **Security Updates**: Apply security updates promptly
-2. **Dependency Management**: Keep dependencies updated
-3. **Security Scanning**: Regular security scans of your deployment
+- **JanusGraph**: Requires external database security (network, authentication, TLS)
+- **SQLite**: Relies on file system permissions and OS-level encryption
+- **JSON File**: Stores data in plaintext, suitable only for development/testing
 
 ## Security Testing
 
-Memory Engine includes comprehensive security tests:
+The project includes basic security tests for educational purposes:
 
-- **Authentication Tests**: 24 test cases covering user management and authentication
-- **RBAC Tests**: 22 test cases for role-based access control
-- **Encryption Tests**: 27 test cases for encryption and key management
-- **Integration Tests**: End-to-end security workflow testing
-
-Run security tests:
 ```bash
-# Run all security tests
+# Run security tests
 pytest tests/test_security_*.py -v
 
-# Run specific security module tests
-pytest tests/test_security_auth.py -v
-pytest tests/test_security_rbac.py -v
-pytest tests/test_security_encryption.py -v
+# Specific modules
+pytest tests/test_security_auth.py -v      # Authentication (24 tests)
+pytest tests/test_security_rbac.py -v     # Access control (22 tests)  
+pytest tests/test_security_encryption.py -v # Encryption (27 tests)
 ```
 
-## Security Documentation
+**Note**: Passing tests do not guarantee security - they only verify basic functionality.
 
-Comprehensive security documentation is available:
+## Documentation
+
+Security-related documentation:
 
 - **Security Framework**: [`docs/security/README.md`](docs/security/README.md)
-- **Configuration Guide**: [`docs/user/configuration.md`](docs/user/configuration.md)
-- **API Security**: [`docs/api/api_reference.md`](docs/api/api_reference.md)
-- **Security Examples**: [`examples/security_example.py`](examples/security_example.py)
+- **Configuration**: [`docs/user/configuration.md`](docs/user/configuration.md)
+- **Examples**: [`examples/security_example.py`](examples/security_example.py)
 
-## Acknowledgments
+## Contributing Security Improvements
 
-We thank the security researchers and community members who responsibly disclose vulnerabilities to help keep Memory Engine secure.
+Contributions to improve security are welcome:
 
-### Security Contributors
+1. **Open Issues**: Discuss security improvements
+2. **Pull Requests**: Submit security enhancements
+3. **Documentation**: Improve security documentation
+4. **Testing**: Add security test cases
 
-- **Janek Wenning (@Celebr4tion)**: Project maintainer and security framework implementation
+## Disclaimers
+
+### No Warranty
+
+This software is provided "as is" without any warranty of any kind. The author makes no representations about the suitability of this software for any purpose.
+
+### No Liability
+
+The author shall not be liable for any damages arising from the use of this software, including but not limited to data loss, security breaches, or system compromise.
+
+### Educational Purpose
+
+This project is intended for educational and research purposes. Users are solely responsible for evaluating its security and suitability for their use case.
+
+### Personal Project
+
+This is a personal learning project by one individual. It does not have the resources, expertise, or formal processes of a commercial security product.
 
 ## Contact
 
-For security-related questions or concerns:
+For questions about security aspects:
 
-- **Security Issues**: Contact @Celebr4tion on GitHub or create a private security advisory
-- **General Questions**: [Create a GitHub Discussion](https://github.com/Celebr4tion/memory-engine/discussions)
-- **Documentation Issues**: [Create a GitHub Issue](https://github.com/Celebr4tion/memory-engine/issues)
+- **General Discussion**: [GitHub Discussions](https://github.com/Celebr4tion/memory-engine/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Celebr4tion/memory-engine/issues)
+- **Private Contact**: @Celebr4tion on GitHub
 
-## Legal
-
-### Responsible Disclosure
-
-We request that security researchers:
-
-1. **Act in good faith** to avoid privacy violations and service disruption
-2. **Do not access or modify** user data without explicit permission
-3. **Do not perform testing** on production systems without authorization
-4. **Provide reasonable time** for fixes before public disclosure
-5. **Make every effort** to avoid degradation of user experience
-
-### Safe Harbor
-
-When conducting security research according to this policy:
-
-1. We will not pursue legal action against you
-2. We will work with you to understand and resolve the issue quickly
-3. We will acknowledge your responsible disclosure if you wish
-4. We will not contact law enforcement about your research
-
-This policy is inspired by responsible disclosure frameworks and follows industry best practices for open source security.
+**Remember**: This is experimental educational software. Evaluate carefully before any serious use.
