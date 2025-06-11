@@ -106,7 +106,11 @@ class StorageFactory:
             if graph_config:
                 backend_specific_config = getattr(graph_config, backend_type, None)
                 if backend_specific_config:
-                    backend_config = dict(backend_specific_config)
+                    # Convert dataclass to dict
+                    if hasattr(backend_specific_config, '__dict__'):
+                        backend_config = dict(backend_specific_config.__dict__)
+                    else:
+                        backend_config = dict(backend_specific_config)
         
         # Apply override configuration
         if config_override:

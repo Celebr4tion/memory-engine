@@ -210,18 +210,26 @@ Memory Engine uses a sophisticated multi-layer architecture:
 
 ### Core Components
 
-- **Knowledge Graph (JanusGraph)**: Stores entities and relationships
+- **Modular Graph Storage**: Multiple backend options (JanusGraph, SQLite, JSON file)
 - **Vector Database (Milvus)**: Enables semantic similarity search
 - **Embedding System**: Generates and manages vector representations
 - **Processing Pipeline**: Extracts and structures knowledge from text
 - **Versioning System**: Tracks changes and enables rollbacks
 - **MCP Interface**: Standardized API for external integration
 
+### Storage Backend Options
+
+Choose the storage backend that fits your deployment needs:
+
+- **🏢 JanusGraph**: Production-grade distributed graph database
+- **💾 SQLite**: Single-user deployments with SQL capabilities  
+- **📄 JSON File**: Development and testing with human-readable storage
+
 ## 🔧 Technology Stack
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| Graph Database | JanusGraph 0.6.3 | Knowledge relationships |
+| Graph Storage | JanusGraph / SQLite / JSON | Knowledge relationships |
 | Vector Database | Milvus 2.2.11 | Similarity search |
 | LLM API | Google Gemini | Knowledge extraction & embeddings |
 | Agent Framework | Google ADK | Conversational interfaces |
