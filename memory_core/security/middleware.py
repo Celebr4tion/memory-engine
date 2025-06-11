@@ -9,7 +9,7 @@ import logging
 import functools
 import inspect
 from typing import Dict, List, Optional, Set, Callable, Any, Union
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from flask import Flask, request, g, jsonify, abort
 from werkzeug.exceptions import Unauthorized, Forbidden
 
@@ -258,7 +258,7 @@ class SecurityMiddleware:
             return False
         
         client_id = g.security.ip_address or 'unknown'
-        current_time = datetime.utcnow()
+        current_time = datetime.now(UTC)
         
         # Clean old entries
         if client_id in self._rate_limit_storage:
@@ -511,7 +511,7 @@ def audit_action(
     def decorator(f: Callable) -> Callable:
         @functools.wraps(f)
         def decorated_function(*args, **kwargs):
-            start_time = datetime.utcnow()
+            start_time = datetime.now(UTC)
             success = True
             error_message = None
             result = None
@@ -526,7 +526,7 @@ def audit_action(
             finally:
                 # Log the action if audit logger is available
                 if hasattr(g, 'audit_logger') and g.audit_logger:
-                    execution_time = (datetime.utcnow() - start_time).total_seconds()
+                    execution_time = (datetime.now(UTC) - start_time).total_seconds()
                     
                     g.audit_logger.log_event(
                         level if success else AuditLevel.ERROR,
@@ -571,7 +571,7 @@ def rate_limit(max_requests: int = 60, window_minutes: int = 1) -> Callable:
             else:
                 user_key = g.security.user_id
             
-            current_time = datetime.utcnow()
+            current_time = datetime.now(UTC)
             window_start = current_time - timedelta(minutes=window_minutes)
             
             # Clean old entries

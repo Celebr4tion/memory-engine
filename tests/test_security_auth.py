@@ -5,7 +5,7 @@ Tests for the authentication system.
 import pytest
 import tempfile
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from unittest.mock import patch
 
 from memory_core.security.auth import (
@@ -115,7 +115,7 @@ class TestUserSession:
             user_id="user-123",
             username="testuser",
             roles=set(),
-            expires_at=datetime.utcnow() - timedelta(hours=1)
+            expires_at=datetime.now(UTC) - timedelta(hours=1)
         )
         
         assert not session.is_valid()
@@ -388,7 +388,7 @@ class TestAuthManager:
         
         # Create expired session
         session = self.auth_manager.create_session(user)
-        session.expires_at = datetime.utcnow() - timedelta(hours=1)
+        session.expires_at = datetime.now(UTC) - timedelta(hours=1)
         
         # Run cleanup first to count expired sessions
         cleaned_count = self.auth_manager.cleanup_expired_sessions()
@@ -473,7 +473,7 @@ class TestAuthManager:
         
         # Create expired session
         expired_session = self.auth_manager.create_session(user1)
-        expired_session.expires_at = datetime.utcnow() - timedelta(hours=1)
+        expired_session.expires_at = datetime.now(UTC) - timedelta(hours=1)
         
         # List active sessions
         active_sessions = self.auth_manager.list_sessions()

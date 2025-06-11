@@ -9,7 +9,7 @@ showing authentication, authorization, privacy controls, audit logging, and encr
 import asyncio
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from pathlib import Path
 
 # Add project root to path
@@ -292,7 +292,7 @@ async def main():
     from memory_core.security.audit import AuditFilter
     recent_events = audit_logger.query_events(
         AuditFilter(
-            start_time=datetime.utcnow() - timedelta(minutes=5),
+            start_time=datetime.now(UTC) - timedelta(minutes=5),
             categories=[AuditCategory.SECURITY_INCIDENT],
             limit=5
         )

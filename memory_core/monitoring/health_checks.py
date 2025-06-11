@@ -8,7 +8,7 @@ including databases, external services, and internal subsystems.
 import asyncio
 import time
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Dict, List, Any, Optional
 from enum import Enum
 from dataclasses import dataclass, field
@@ -33,7 +33,7 @@ class HealthCheckResult:
     status: HealthStatus
     message: str
     details: Dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     response_time_ms: float = 0.0
 
 
@@ -89,7 +89,7 @@ class HealthChecker:
         """
         # Use cached result if available and recent
         if (not force_refresh and self._last_check and 
-            datetime.utcnow() - self._last_check.timestamp < self._check_cache_duration):
+            datetime.now(UTC) - self._last_check.timestamp < self._check_cache_duration):
             return self._last_check
         
         start_time = time.time()
@@ -138,7 +138,7 @@ class HealthChecker:
             
             report = SystemHealthReport(
                 overall_status=overall_status,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
                 checks=checks,
                 summary=summary
             )
@@ -152,7 +152,7 @@ class HealthChecker:
             self.logger.error(f"Health check system error: {e}")
             return SystemHealthReport(
                 overall_status=HealthStatus.UNHEALTHY,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
                 checks=[HealthCheckResult(
                     component="health_checker",
                     status=HealthStatus.UNHEALTHY,

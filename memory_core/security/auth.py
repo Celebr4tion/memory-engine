@@ -9,7 +9,7 @@ import hashlib
 import secrets
 import time
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Dict, List, Optional, Set
 from dataclasses import dataclass, field
 from enum import Enum
@@ -42,7 +42,7 @@ class User:
     status: UserStatus = UserStatus.ACTIVE
     roles: Set[str] = field(default_factory=set)
     metadata: Dict[str, any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     last_login: Optional[datetime] = None
     failed_login_attempts: int = 0
     
@@ -85,24 +85,24 @@ class UserSession:
     user_id: str
     username: str
     roles: Set[str]
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    expires_at: datetime = field(default_factory=lambda: datetime.utcnow() + timedelta(hours=24))
-    last_activity: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    expires_at: datetime = field(default_factory=lambda: datetime.now(UTC) + timedelta(hours=24))
+    last_activity: datetime = field(default_factory=lambda: datetime.now(UTC))
     ip_address: Optional[str] = None
     user_agent: Optional[str] = None
     
     def is_valid(self) -> bool:
         """Check if session is still valid."""
-        return datetime.utcnow() < self.expires_at
+        return datetime.now(UTC) < self.expires_at
     
     def is_expired(self) -> bool:
         """Check if session has expired."""
-        return datetime.utcnow() >= self.expires_at
+        return datetime.now(UTC) >= self.expires_at
     
     def refresh(self, extend_hours: int = 24) -> None:
         """Refresh session expiration and update last activity."""
-        self.last_activity = datetime.utcnow()
-        self.expires_at = datetime.utcnow() + timedelta(hours=extend_hours)
+        self.last_activity = datetime.now(UTC)
+        self.expires_at = datetime.now(UTC) + timedelta(hours=extend_hours)
     
     def to_dict(self) -> Dict[str, any]:
         """Convert session to dictionary representation."""
@@ -276,7 +276,7 @@ class AuthManager:
         
         # Reset failed attempts and update last login
         user.failed_login_attempts = 0
-        user.last_login = datetime.utcnow()
+        user.last_login = datetime.now(UTC)
         
         logger.info(f"User authenticated: {username}")
         return user
@@ -475,8 +475,8 @@ class AuthManager:
             'user_id': user.user_id,
             'username': user.username,
             'roles': list(user.roles),
-            'iat': datetime.utcnow(),
-            'exp': datetime.utcnow() + timedelta(hours=expires_in_hours)
+            'iat': datetime.now(UTC),
+            'exp': datetime.now(UTC) + timedelta(hours=expires_in_hours)
         }
         
         return jwt.encode(payload, self.secret_key, algorithm='HS256')

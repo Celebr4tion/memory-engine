@@ -9,7 +9,7 @@ import logging
 from typing import Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, UTC
 import uuid
 
 from memory_core.config.config_manager import get_config
@@ -70,7 +70,7 @@ class Permission:
     description: str
     resource_pattern: Optional[str] = None  # For resource-specific permissions
     metadata: Dict[str, any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     
     def matches_resource(self, resource: str) -> bool:
         """
@@ -114,7 +114,7 @@ class Role:
     permissions: Set[str] = field(default_factory=set)  # Permission IDs
     parent_roles: Set[str] = field(default_factory=set)  # Inherited roles
     metadata: Dict[str, any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     is_system_role: bool = False  # System roles cannot be deleted
     
     def add_permission(self, permission_id: str) -> None:

@@ -11,7 +11,7 @@ import hashlib
 from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass, field, asdict
 from enum import Enum
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import uuid
 import os
 from pathlib import Path
@@ -221,7 +221,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_id=str(uuid.uuid4()),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             level=level,
             category=category,
             action=action,
@@ -269,7 +269,7 @@ class AuditLogger:
             
             recent_failures = self.query_events(
                 AuditFilter(
-                    start_time=datetime.utcnow() - timedelta(minutes=15),
+                    start_time=datetime.now(UTC) - timedelta(minutes=15),
                     categories=[AuditCategory.AUTHENTICATION],
                     user_ids=[event.user_id],
                     success_only=False
@@ -299,7 +299,7 @@ class AuditLogger:
             # Check for access from new IP addresses
             recent_access = self.query_events(
                 AuditFilter(
-                    start_time=datetime.utcnow() - timedelta(days=30),
+                    start_time=datetime.now(UTC) - timedelta(days=30),
                     categories=[AuditCategory.KNOWLEDGE_ACCESS],
                     user_ids=[event.user_id]
                 )
@@ -568,7 +568,7 @@ class AuditLogger:
         Returns:
             Security summary statistics
         """
-        start_time = datetime.utcnow() - timedelta(days=days_back)
+        start_time = datetime.now(UTC) - timedelta(days=days_back)
         
         all_events = self.query_events(AuditFilter(start_time=start_time))
         
@@ -631,7 +631,7 @@ class AuditLogger:
         Returns:
             Compliance report
         """
-        start_time = datetime.utcnow() - timedelta(days=days_back)
+        start_time = datetime.now(UTC) - timedelta(days=days_back)
         
         events = self.query_events(
             AuditFilter(
@@ -736,7 +736,7 @@ class AuditLogger:
             Number of events cleaned up
         """
         retention_days = retention_days or self.retention_days
-        cutoff_date = datetime.utcnow() - timedelta(days=retention_days)
+        cutoff_date = datetime.now(UTC) - timedelta(days=retention_days)
         
         initial_count = len(self._memory_events)
         self._memory_events = [

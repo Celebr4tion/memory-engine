@@ -9,7 +9,7 @@ import logging
 import time
 import smtplib
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Dict, List, Any, Optional, Callable, Union
 from dataclasses import dataclass, field
 from enum import Enum
@@ -289,7 +289,7 @@ class AlertManager:
             List of alerts to send
         """
         triggered_alerts = []
-        current_time = datetime.utcnow()
+        current_time = datetime.now(UTC)
         
         for rule in self.alert_rules:
             if not rule.enabled:
@@ -529,7 +529,7 @@ class AlertManager:
         rule_counts = {}
         
         # Last 24 hours
-        cutoff_time = datetime.utcnow() - timedelta(days=1)
+        cutoff_time = datetime.now(UTC) - timedelta(days=1)
         recent_alerts = [alert for alert in self.alert_history if alert.timestamp > cutoff_time]
         
         for alert in recent_alerts:

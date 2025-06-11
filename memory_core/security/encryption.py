@@ -12,7 +12,7 @@ import secrets
 from typing import Dict, List, Optional, Tuple, Union, Any
 from dataclasses import dataclass
 from enum import Enum
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import hashlib
 import json
 
@@ -120,7 +120,7 @@ class EncryptionKey:
     
     def is_expired(self) -> bool:
         """Check if the key has expired."""
-        return self.expires_at and datetime.utcnow() > self.expires_at
+        return self.expires_at and datetime.now(UTC) > self.expires_at
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary (without sensitive key data)."""
@@ -152,7 +152,7 @@ class EncryptedData:
         if self.metadata is None:
             self.metadata = {}
         if self.encrypted_at is None:
-            self.encrypted_at = datetime.utcnow()
+            self.encrypted_at = datetime.now(UTC)
     
     def to_base64(self) -> str:
         """Convert encrypted data to base64 string for storage."""
@@ -283,9 +283,9 @@ class EncryptionManager:
         # Set expiration
         expires_at = None
         if expires_in_days:
-            expires_at = datetime.utcnow() + timedelta(days=expires_in_days)
+            expires_at = datetime.now(UTC) + timedelta(days=expires_in_days)
         elif self.config.key_rotation_days > 0:
-            expires_at = datetime.utcnow() + timedelta(days=self.config.key_rotation_days)
+            expires_at = datetime.now(UTC) + timedelta(days=self.config.key_rotation_days)
         
         # Create key metadata
         encryption_key = EncryptionKey(
@@ -293,7 +293,7 @@ class EncryptionManager:
             algorithm=algorithm,
             scope=scope,
             key_data=key_data,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
             expires_at=expires_at
         )
         
@@ -583,7 +583,7 @@ class EncryptionManager:
             List of keys that are expired or will expire soon
         """
         expiring_keys = []
-        warning_threshold = datetime.utcnow() + timedelta(days=7)  # 7 days warning
+        warning_threshold = datetime.now(UTC) + timedelta(days=7)  # 7 days warning
         
         for key in self._keys.values():
             if key.expires_at and key.expires_at <= warning_threshold:

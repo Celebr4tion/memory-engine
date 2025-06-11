@@ -9,7 +9,7 @@ import logging
 from typing import Dict, List, Optional, Set, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import uuid
 
 from memory_core.model.knowledge_node import KnowledgeNode
@@ -41,13 +41,13 @@ class AccessRule:
     role_id: Optional[str] = None  # Role-based access
     permissions: Set[str] = field(default_factory=set)  # Set of permission types
     conditions: Dict[str, any] = field(default_factory=dict)  # Additional conditions
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     expires_at: Optional[datetime] = None  # Optional expiration
     created_by: str = ""  # User who created the rule
     
     def is_valid(self) -> bool:
         """Check if the access rule is still valid."""
-        if self.expires_at and datetime.utcnow() > self.expires_at:
+        if self.expires_at and datetime.now(UTC) > self.expires_at:
             return False
         return True
     
@@ -383,7 +383,7 @@ class KnowledgeAccessControl:
             )
         
         # Update access tracking
-        metadata.last_accessed = datetime.utcnow()
+        metadata.last_accessed = datetime.now(UTC)
         metadata.access_count += 1
         
         # Check ownership
@@ -476,7 +476,7 @@ class KnowledgeAccessControl:
         # Time-based conditions
         if "time_range" in conditions:
             time_range = conditions["time_range"]
-            current_time = datetime.utcnow().time()
+            current_time = datetime.now(UTC).time()
             start_time = datetime.strptime(time_range["start"], "%H:%M").time()
             end_time = datetime.strptime(time_range["end"], "%H:%M").time()
             
@@ -555,7 +555,7 @@ class KnowledgeAccessControl:
         Returns:
             List of access attempt records
         """
-        cutoff_date = datetime.utcnow() - timedelta(days=days_back)
+        cutoff_date = datetime.now(UTC) - timedelta(days=days_back)
         audit_records = []
         
         # This would typically query an audit log
@@ -573,7 +573,7 @@ class KnowledgeAccessControl:
                     'resource_id': resource_id,
                     'permission_type': permission_type,
                     'access_granted': granted,
-                    'timestamp': datetime.utcnow().isoformat()  # Would be actual timestamp
+                    'timestamp': datetime.now(UTC).isoformat()  # Would be actual timestamp
                 })
         
         return audit_records

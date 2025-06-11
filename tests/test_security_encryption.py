@@ -4,7 +4,7 @@ Tests for the encryption system.
 
 import pytest
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 from memory_core.security.encryption import (
     EncryptionManager, EncryptionConfig, EncryptionType, EncryptionScope,
@@ -70,14 +70,14 @@ class TestEncryptionKey:
     def test_key_creation(self):
         """Test creating an encryption key."""
         key_data = b"test_key_data_32_bytes_long!!"
-        expires_at = datetime.utcnow() + timedelta(days=90)
+        expires_at = datetime.now(UTC) + timedelta(days=90)
         
         key = EncryptionKey(
             key_id="key-123",
             algorithm=EncryptionType.AES_256_GCM,
             scope=EncryptionScope.USER_DATA,
             key_data=key_data,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
             expires_at=expires_at,
             metadata={"custom": "value"}
         )
@@ -99,8 +99,8 @@ class TestEncryptionKey:
             algorithm=EncryptionType.AES_256_GCM,
             scope=EncryptionScope.USER_DATA,
             key_data=b"test_key",
-            created_at=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(days=1)
+            created_at=datetime.now(UTC),
+            expires_at=datetime.now(UTC) + timedelta(days=1)
         )
         
         assert not key.is_expired()
@@ -111,8 +111,8 @@ class TestEncryptionKey:
             algorithm=EncryptionType.AES_256_GCM,
             scope=EncryptionScope.USER_DATA,
             key_data=b"test_key",
-            created_at=datetime.utcnow() - timedelta(days=2),
-            expires_at=datetime.utcnow() - timedelta(days=1)
+            created_at=datetime.now(UTC) - timedelta(days=2),
+            expires_at=datetime.now(UTC) - timedelta(days=1)
         )
         
         assert expired_key.is_expired()
@@ -123,7 +123,7 @@ class TestEncryptionKey:
             algorithm=EncryptionType.AES_256_GCM,
             scope=EncryptionScope.USER_DATA,
             key_data=b"test_key",
-            created_at=datetime.utcnow()
+            created_at=datetime.now(UTC)
         )
         
         assert not no_expiry_key.is_expired()
@@ -135,7 +135,7 @@ class TestEncryptionKey:
             algorithm=EncryptionType.AES_256_GCM,
             scope=EncryptionScope.USER_DATA,
             key_data=b"secret_key_data",
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
             metadata={"purpose": "testing"}
         )
         
@@ -423,7 +423,7 @@ class TestEncryptionManager:
             EncryptionType.AES_256_GCM,
             EncryptionScope.USER_DATA
         )
-        expired_key.expires_at = datetime.utcnow() - timedelta(days=1)
+        expired_key.expires_at = datetime.now(UTC) - timedelta(days=1)
         
         # Check expiring keys
         expiring_keys = self.encryption_manager.check_key_expiration()
@@ -439,7 +439,7 @@ class TestEncryptionManager:
         
         # Get current active key and mark it as expired
         current_key = self.encryption_manager.get_active_key(scope)
-        current_key.expires_at = datetime.utcnow() - timedelta(days=1)
+        current_key.expires_at = datetime.now(UTC) - timedelta(days=1)
         
         # Run auto rotation
         rotated = self.encryption_manager.auto_rotate_expired_keys()
