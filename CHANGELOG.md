@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.0] - 2025-01-06
+## [0.2.0] - 2025-06-11
 
 ### Added
 - **Modular Storage Backends**: Multiple graph storage options for different deployment needs
@@ -215,7 +215,7 @@ This project builds upon excellent open source technologies:
 
 | Version | Release Date | Description |
 |---------|--------------|-------------|
-| 0.2.0   | 2025-01-06   | Modular storage backends and configuration system |
+| 0.2.0   | 2025-06-11   | Modular storage backends and configuration system |
 | 0.1.0   | 2025-06-09   | Initial alpha release - experimental |
 
 ## Support
