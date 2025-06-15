@@ -25,6 +25,8 @@ pyyaml
 joblib
 tqdm
 psutil
+requests
+aiohttp
 
 # Monitoring and Observability
 prometheus_client
@@ -42,6 +44,7 @@ pytest
 pytest-cov
 pytest-asyncio
 pytest-env
+aioresponses
 
 # Security and Cryptography
 cryptography
