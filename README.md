@@ -12,7 +12,7 @@ Memory Engine is an experimental knowledge management system that transforms uns
 
 ## 🚧 Project Status
 
-**This project is currently in active development (v0.3.0) and should be considered experimental.**
+**This project is currently in active development (v0.4.0 - Production Readiness) and should be considered experimental.**
 
 ### Vision
 
@@ -37,20 +37,40 @@ We aim to eliminate dependency on paid APIs by providing full support for local 
 
 ### Key Features
 
-- 🧠 **Multi-LLM Support**: Supports 5 different LLM providers (Gemini, OpenAI, Anthropic, Ollama, HuggingFace)
-- 🔄 **LLM Independence**: Fallback chains and circuit breaker pattern for resilience
-- 🏠 **Local Operation**: Complete offline capabilities with Ollama and HuggingFace Transformers
-- 🕸️ **Automatic Relationship Discovery**: Detects and creates relationships between knowledge entities
-- 🔍 **Semantic Search**: Multi-provider vector embeddings with modular vector stores
-- 🗃️ **Modular Storage**: Choose from JanusGraph, SQLite, or JSON backends
-- 🔐 **Basic Security Features**: Authentication, RBAC, encryption, and audit logging (educational purposes)
-- 🛡️ **Privacy Controls**: Fine-grained knowledge privacy levels and access control
-- 📊 **Quality Enhancement**: Automated quality assessment and contradiction resolution
-- 📚 **Version Control**: Complete change tracking and rollback capabilities
-- 🔗 **Flexible Integration**: MCP (Module Communication Protocol) interface for external systems
-- 🤖 **Agent Support**: Google ADK integration for conversational knowledge interactions
-- ⚡ **Real-time Processing**: Concurrent processing of knowledge ingestion and retrieval
-- 📈 **Monitoring**: Performance monitoring, health checks, and observability
+#### 🧠 **AI & Language Models**
+- **Multi-LLM Support**: 5 different LLM providers (Gemini, OpenAI, Anthropic, Ollama, HuggingFace)
+- **LLM Independence**: Fallback chains and circuit breaker pattern for resilience
+- **Local Operation**: Complete offline capabilities with Ollama and HuggingFace Transformers
+- **Automatic Relationship Discovery**: Detects and creates relationships between knowledge entities
+
+#### ⚡ **Performance & Production**
+- **Advanced Caching**: Multi-level caching with TTL, memory limits, and intelligent invalidation
+- **Connection Pooling**: Health monitoring and configurable pool management
+- **Query Optimization**: Prepared statements and batch processing for high throughput
+- **Memory Management**: Garbage collection optimization and automatic resource cleanup
+
+#### 🛠️ **Operations & Management**
+- **Health Monitoring**: Comprehensive system health checks and service monitoring
+- **CLI Tools**: Complete command-line interface for all management operations
+- **Migration Tools**: Backend migration utilities with multiple strategies
+- **Backup & Restore**: Automated backup with compression and retention policies
+
+#### 🔌 **Extensibility**
+- **Plugin Architecture**: Custom storage backends, LLM providers, and embedding providers
+- **Data Export/Import**: Multiple formats (JSON, CSV, XML, GraphML, Cypher, Gremlin, RDF)
+- **Metrics Collection**: Prometheus-compatible metrics with counters, gauges, histograms
+
+#### 🔍 **Knowledge Management**
+- **Semantic Search**: Multi-provider vector embeddings with modular vector stores
+- **Modular Storage**: Choose from JanusGraph, SQLite, or JSON backends
+- **Quality Enhancement**: Automated quality assessment and contradiction resolution
+- **Version Control**: Complete change tracking and rollback capabilities
+
+#### 🔐 **Security & Integration**
+- **Basic Security Features**: Authentication, RBAC, encryption, and audit logging (educational purposes)
+- **Privacy Controls**: Fine-grained knowledge privacy levels and access control
+- **Flexible Integration**: MCP (Module Communication Protocol) interface for external systems
+- **Agent Support**: Google ADK integration for conversational knowledge interactions
 
 ## 🚀 Quick Start
 
@@ -135,6 +155,46 @@ print(f"Created knowledge node: {node_id}")
 # Retrieve and explore
 retrieved = engine.get_node(node_id)
 print(f"Content: {retrieved.content}")
+```
+
+### 5. CLI Management (v0.4.0+)
+
+Memory Engine includes a comprehensive CLI for production management:
+
+```bash
+# Initialize a new Memory Engine instance
+memory-engine init --backend=sqlite --embedding=sentence_transformers
+
+# Check system health
+memory-engine health-check --detailed
+
+# Migrate between storage backends
+memory-engine migrate --from=sqlite --to=janusgraph --verify
+
+# Export knowledge graph data
+memory-engine export --format=json --output=backup.json --include-metadata
+
+# Import data from various formats
+memory-engine import --file=data.json --merge-duplicates
+
+# Create system backups
+memory-engine backup --strategy=full --compression=gzip
+
+# Restore from backup
+memory-engine restore --backup=backup_12345 --clear-existing
+
+# Manage plugins
+memory-engine plugins list --type=storage
+memory-engine plugins install custom-backend
+
+# Configuration management
+memory-engine config show --section=storage
+memory-engine config set storage.backend janusgraph
+memory-engine config validate
+
+# System status
+memory-engine status
+memory-engine version
 ```
 
 ## 📖 Documentation
