@@ -7,6 +7,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-06-15
+
+### Added - Production Readiness & Performance Optimization
+
+#### Performance Optimizations
+- **Advanced Cache Manager**: Multi-level caching with TTL, memory limits, and LRU eviction
+- **Connection Pooling**: Health monitoring, metrics collection, and configurable pool management
+- **Prepared Statements**: Query optimization with template caching and batch execution support
+- **Batch Optimizer**: Adaptive processing strategies with memory optimization and progress tracking
+- **Memory Management**: Garbage collection optimization, pressure detection, and automatic cleanup
+- **Query Result Caching**: Intelligent caching with pattern-based invalidation
+
+#### Operational Excellence
+- **Health Monitoring System**: Comprehensive component health checks and service monitoring
+- **Metrics Collection**: Counters, gauges, histograms, timers, and rates with Prometheus export
+- **Health Endpoints**: Flask/FastAPI/aiohttp integration with readiness/liveness checks
+- **Service Monitor**: External dependency health verification (JanusGraph, Milvus, APIs)
+- **Performance Monitor**: System-wide performance tracking with component health scoring
+
+#### Migration & Backup System
+- **Backend Migrator**: Support for incremental, bulk, streaming, and snapshot migration strategies
+- **Data Exporter**: Multi-format export (JSON, CSV, XML, GraphML, Cypher, Gremlin, RDF, NetworkX)
+- **Data Importer**: Validation, duplicate handling, and batch processing capabilities
+- **Backup Manager**: Compression, verification, retention policies, and automated cleanup
+
+#### Plugin Architecture
+- **Plugin Manager**: Discovery, loading, and lifecycle management for custom extensions
+- **Storage Plugins**: Interface for custom storage backend implementations
+- **LLM Plugins**: Interface for custom language model provider implementations
+- **Embedding Plugins**: Interface for custom embedding provider implementations
+- **Plugin Registry**: Metadata management, search capabilities, and validation
+
+#### CLI Tools
+- **Comprehensive CLI**: Complete command-line interface for all management operations
+- **Management Commands**: init, migrate, export, import, backup, restore, health-check
+- **Configuration Management**: show, set, validate configuration via CLI
+- **Plugin Management**: list, install, uninstall plugins via CLI
+- **Progress Tracking**: Real-time progress feedback for long-running operations
+
+### Changed
+- **Version**: Updated to 0.4.0 across all configuration files
+- **Architecture**: Enhanced modular design with dedicated performance and health modules
+- **Error Handling**: Comprehensive error handling and recovery mechanisms
+- **Configuration**: Extended configuration system with performance and health settings
+
+### Technical Improvements
+- **Async Support**: Full async/await support throughout the performance system
+- **Monitoring Integration**: Built-in health checks and metrics collection
+- **Resource Management**: Memory usage tracking and automatic optimization
+- **Plugin Extensibility**: Complete plugin system for custom backend implementations
+- **CLI Interface**: Production-ready command-line tools for system management
+
+### Performance Enhancements
+- **Cache Hit Rates**: Intelligent multi-level caching reduces database load
+- **Connection Efficiency**: Pool management reduces connection overhead
+- **Query Optimization**: Prepared statements and batch operations improve throughput
+- **Memory Usage**: Automatic memory management and garbage collection optimization
+- **System Monitoring**: Real-time performance metrics and health tracking
+
+### Breaking Changes
+- CLI entry point moved from `memory_core.cli` to `memory_engine_cli`
+- New performance module requires configuration updates for advanced features
+- Plugin architecture may require updates for custom backend implementations
+
+### Migration Guide
+- Update CLI references to use new `memory-engine` command
+- Review performance configuration options in `config.yaml`
+- Migrate custom backends to use new plugin interfaces if applicable
+- Update health monitoring endpoints for web application integration
+
 ## [0.3.0] - 2025-06-15
 
 ### Added - LLM Independence & Local Operation

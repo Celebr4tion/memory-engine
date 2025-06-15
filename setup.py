@@ -19,7 +19,7 @@ except FileNotFoundError:
 
 setup(
     name="memory-engine",
-    version="0.3.0",
+    version="0.4.0",
     author="Janek Wenning",
     author_email="noreply@github.com",
     description="A comprehensive knowledge graph and memory management system with modular storage backends",
@@ -67,7 +67,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "memory-engine=memory_core.cli:main",
+            "memory-engine=memory_engine_cli:main",
         ],
     },
     include_package_data=True,
