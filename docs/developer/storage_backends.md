@@ -1,6 +1,6 @@
 # Storage Backends
 
-This document describes the modular storage backend system introduced in version 0.2.0, which allows the Memory Engine to work with different graph storage implementations.
+This document describes the modular storage backend system introduced in version 0.2.0, which allows the Memory Engine to work with different graph storage implementations. The system has been enhanced in subsequent versions with improved configuration and compatibility.
 
 ## Overview
 

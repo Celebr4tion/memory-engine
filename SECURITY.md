@@ -14,7 +14,8 @@ Security updates are provided on a best-effort basis:
 
 | Version | Status                |
 | ------- | -------------------- |
-| 0.2.x   | Current development  |
+| 0.3.x   | Current development  |
+| 0.2.x   | Maintenance only     |
 | 0.1.x   | Legacy               |
 | < 0.1   | No support           |
 
@@ -48,7 +49,7 @@ Memory Engine includes basic security components for educational purposes:
 - Basic rate limiting capabilities
 - Input validation helpers
 
-### 🗄️ Storage Backend Security (New in v0.2.0)
+### 🗄️ Storage Backend Security (Added in v0.2.0)
 - **JanusGraph**: Network-based storage requiring external security measures
 - **SQLite**: File-based storage relying on OS file permissions
 - **JSON File**: Plaintext storage requiring careful file system security

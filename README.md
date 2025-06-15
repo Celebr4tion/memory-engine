@@ -12,7 +12,7 @@ Memory Engine is an experimental knowledge management system that transforms uns
 
 ## 🚧 Project Status
 
-**This project is currently in active development (v0.2.0) and should be considered experimental.**
+**This project is currently in active development (v0.3.0) and should be considered experimental.**
 
 ### Vision
 
@@ -37,9 +37,12 @@ We aim to eliminate dependency on paid APIs by providing full support for local 
 
 ### Key Features
 
-- 🧠 **Intelligent Knowledge Extraction**: Uses Google Gemini API to extract structured knowledge from raw text
+- 🧠 **Multi-LLM Support**: Supports 5 different LLM providers (Gemini, OpenAI, Anthropic, Ollama, HuggingFace)
+- 🔄 **LLM Independence**: Fallback chains and circuit breaker pattern for resilience
+- 🏠 **Local Operation**: Complete offline capabilities with Ollama and HuggingFace Transformers
 - 🕸️ **Automatic Relationship Discovery**: Detects and creates relationships between knowledge entities
-- 🔍 **Semantic Search**: Vector-based similarity search for contextual information retrieval
+- 🔍 **Semantic Search**: Multi-provider vector embeddings with modular vector stores
+- 🗃️ **Modular Storage**: Choose from JanusGraph, SQLite, or JSON backends
 - 🔐 **Basic Security Features**: Authentication, RBAC, encryption, and audit logging (educational purposes)
 - 🛡️ **Privacy Controls**: Fine-grained knowledge privacy levels and access control
 - 📊 **Quality Enhancement**: Automated quality assessment and contradiction resolution
@@ -54,8 +57,12 @@ We aim to eliminate dependency on paid APIs by providing full support for local 
 ### Prerequisites
 
 - Python 3.8+
-- Docker & Docker Compose
-- Google Gemini API key ([Get one here](https://makersuite.google.com/app/apikey))
+- Docker & Docker Compose (optional, for JanusGraph/Milvus)
+- At least one LLM provider API key:
+  - Google Gemini API key ([Get one here](https://makersuite.google.com/app/apikey))
+  - OpenAI API key ([Get one here](https://platform.openai.com/api-keys))
+  - Anthropic API key ([Get one here](https://console.anthropic.com/))
+  - Or use local models with Ollama or HuggingFace (no API key needed)
 
 ### 1. Installation
 
@@ -79,23 +86,30 @@ The setup script will:
 
 ```bash
 # Edit the .env file created by setup
-# Set your Gemini API key
-GEMINI_API_KEY="your-gemini-api-key"
+# Set your preferred LLM provider API keys (at least one required)
+GOOGLE_API_KEY="your-gemini-api-key"           # For Gemini
+OPENAI_API_KEY="your-openai-api-key"           # For OpenAI GPT
+ANTHROPIC_API_KEY="your-anthropic-api-key"     # For Claude
+HUGGINGFACE_API_KEY="your-hf-api-key"          # For HuggingFace API (optional)
 
 # Optional: Set environment (defaults to development)
 ENVIRONMENT="development"
 ```
 
-### 3. Start Infrastructure
+### 3. Start Infrastructure (Optional)
+
+For production storage backends:
 
 ```bash
-# Start JanusGraph and Milvus
+# Start JanusGraph and Milvus (optional, for production storage)
 cd docker
 docker-compose up -d
 
 # Wait for services to initialize (2-3 minutes)
 docker-compose logs -f
 ```
+
+For development, you can use lightweight storage backends (SQLite/JSON) that don't require external services.
 
 ### 4. Basic Usage
 
@@ -234,8 +248,9 @@ Choose the storage backend that fits your deployment needs:
 | Component | Technology | Purpose |
 |-----------|------------|---------|
 | Graph Storage | JanusGraph / SQLite / JSON | Knowledge relationships |
-| Vector Database | Milvus 2.2.11 | Similarity search |
-| LLM API | Google Gemini | Knowledge extraction & embeddings |
+| Vector Database | Milvus / ChromaDB / NumPy | Similarity search |
+| LLM Providers | Gemini / OpenAI / Anthropic / Ollama / HuggingFace | Knowledge extraction |
+| Embedding Providers | Gemini / OpenAI / Sentence Transformers / Ollama | Vector generation |
 | Agent Framework | Google ADK | Conversational interfaces |
 | Web Framework | FastAPI | REST API endpoints |
 | Language | Python 3.8+ | Core implementation |

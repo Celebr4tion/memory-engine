@@ -3,11 +3,13 @@ Tests for the advanced extractor module.
 
 This module tests the extraction of knowledge units from raw text.
 """
+
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 import json
 import pytest
 import os
+import asyncio
 
 from memory_core.ingestion.advanced_extractor import AdvancedExtractor, extract_knowledge_units
 
@@ -17,22 +19,25 @@ class TestAdvancedExtractor(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures before each test method."""
-        # Create a mock for the Gemini client
-        self.client_patcher = patch('memory_core.ingestion.advanced_extractor.genai.Client')
-        self.mock_client = self.client_patcher.start()
-        
+        # Create a mock for the GeminiLLMProvider
+        self.llm_provider_patcher = patch(
+            "memory_core.ingestion.advanced_extractor.GeminiLLMProvider"
+        )
+        self.mock_llm_provider_class = self.llm_provider_patcher.start()
+
         # Create a mock for the config to return a fake API key
-        self.config_patcher = patch('memory_core.ingestion.advanced_extractor.get_config')
+        self.config_patcher = patch("memory_core.ingestion.advanced_extractor.get_config")
         self.mock_config = self.config_patcher.start()
-        
+
         # Mock config object
         mock_config_obj = MagicMock()
-        mock_config_obj.config.api.gemini_api_key = 'fake_api_key'
-        mock_config_obj.config.llm.model = 'gemini-2.0-flash-thinking-exp'
+        mock_config_obj.config.api.google_api_key = "fake_api_key"
+        mock_config_obj.config.llm.model = "gemini-2.0-flash-thinking-exp"
         mock_config_obj.config.llm.temperature = 0.7
         mock_config_obj.config.llm.max_tokens = 4096
+        mock_config_obj.config.llm.timeout = 60
         self.mock_config.return_value = mock_config_obj
-        
+
         # Sample text for testing
         self.sample_text = """
         Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to natural 
@@ -44,7 +49,7 @@ class TestAdvancedExtractor(unittest.TestCase):
         where the discipline was born. AI research has gone through cycles of optimism, disappointment 
         and funding cuts, followed by new approaches, success and renewed funding.
         """
-        
+
         # Mock knowledge units that the LLM would return
         self.mock_units = [
             {
@@ -54,14 +59,14 @@ class TestAdvancedExtractor(unittest.TestCase):
                     "confidence_level": 0.95,
                     "domain": "computer science",
                     "language": "english",
-                    "importance": 0.9
+                    "importance": 0.9,
                 },
                 "source": {
                     "type": "user_input",
                     "url": None,
                     "reference": "Provided text",
-                    "page": None
-                }
+                    "page": None,
+                },
             },
             {
                 "content": "AI research is defined as studying intelligent agents that perceive their environment and act to achieve goals.",
@@ -70,14 +75,14 @@ class TestAdvancedExtractor(unittest.TestCase):
                     "confidence_level": 0.9,
                     "domain": "computer science",
                     "language": "english",
-                    "importance": 0.8
+                    "importance": 0.8,
                 },
                 "source": {
                     "type": "user_input",
                     "url": None,
                     "reference": "Provided text",
-                    "page": None
-                }
+                    "page": None,
+                },
             },
             {
                 "content": "The term 'artificial intelligence' was first used in 1956 at the Dartmouth Conference.",
@@ -86,133 +91,125 @@ class TestAdvancedExtractor(unittest.TestCase):
                     "confidence_level": 0.95,
                     "domain": "computer science history",
                     "language": "english",
-                    "importance": 0.7
+                    "importance": 0.7,
                 },
                 "source": {
                     "type": "user_input",
                     "url": None,
                     "reference": "Provided text",
-                    "page": None
-                }
-            }
+                    "page": None,
+                },
+            },
         ]
-        
-        # Set up the extractor with mocked client
+
+        # Set up the extractor with mocked LLM provider
+        self.mock_llm_provider = MagicMock()
+        self.mock_llm_provider.is_connected = False
+        self.mock_llm_provider.connect = AsyncMock(return_value=True)
+        self.mock_llm_provider.extract_knowledge_units = AsyncMock(return_value=self.mock_units)
+        self.mock_llm_provider_class.return_value = self.mock_llm_provider
+
         self.extractor = AdvancedExtractor()
-        self.extractor.client = self.mock_client.return_value
-        
+
     def tearDown(self):
         """Clean up after each test method."""
-        self.client_patcher.stop()
+        self.llm_provider_patcher.stop()
         self.config_patcher.stop()
-    
-    def test_create_prompt(self):
-        """Test creating a prompt for the LLM."""
-        prompt = self.extractor._create_prompt("Some test text")
-        
-        # Check that the prompt contains the input text
-        assert "Some test text" in prompt
-        # Check that the prompt includes formatting instructions
-        assert "JSON" in prompt
-        assert "content" in prompt
-        assert "tags" in prompt
-        assert "metadata" in prompt
-    
+
+    def test_llm_provider_initialization(self):
+        """Test that the LLM provider is properly initialized."""
+        # Verify that GeminiLLMProvider was called with correct config
+        self.mock_llm_provider_class.assert_called_once()
+        call_args = self.mock_llm_provider_class.call_args[0][0]
+
+        assert call_args["api_key"] == "fake_api_key"
+        assert call_args["model_name"] == "gemini-2.0-flash-thinking-exp"
+        assert call_args["temperature"] == 0.7
+        assert call_args["max_tokens"] == 4096
+
     def test_extract_knowledge_units(self):
         """Test extracting knowledge units from text."""
-        # Setup the mock response
-        mock_response = MagicMock()
-        mock_response.text = json.dumps(self.mock_units)
-        self.extractor.client.models.generate_content.return_value = mock_response
-        
-        # Extract knowledge units
-        units = self.extractor.extract_knowledge_units(self.sample_text)
-        
-        # Verify API call
-        self.extractor.client.models.generate_content.assert_called_once()
-        
+        # Extract knowledge units using asyncio
+        units = asyncio.run(self.extractor.extract_knowledge_units(self.sample_text))
+
+        # Verify LLM provider methods were called
+        self.mock_llm_provider.connect.assert_called_once()
+        self.mock_llm_provider.extract_knowledge_units.assert_called_once_with(self.sample_text)
+
         # Verify results
         assert len(units) == 3
         assert units[0]["content"] == self.mock_units[0]["content"]
         assert "tags" in units[0]
         assert "metadata" in units[0]
         assert "source" in units[0]
-    
+
     def test_empty_input(self):
         """Test handling of empty input."""
         # Extract knowledge units from empty text
-        units = self.extractor.extract_knowledge_units("")
-        
-        # Verify no API call was made
-        self.extractor.client.generate_content.assert_not_called()
-        
+        units = asyncio.run(self.extractor.extract_knowledge_units(""))
+
+        # Verify no LLM provider calls were made (since empty text returns immediately)
+        self.mock_llm_provider.extract_knowledge_units.assert_not_called()
+
         # Verify empty result
         assert units == []
-    
-    def test_json_parsing_error(self):
-        """Test handling of JSON parsing errors."""
-        # Setup the mock to return invalid JSON
-        mock_response = MagicMock()
-        mock_response.text = "This is not JSON"
-        self.extractor.client.models.generate_content.return_value = mock_response
-        
-        # Extract knowledge units with invalid JSON response
-        units = self.extractor.extract_knowledge_units(self.sample_text)
-        
-        # Verify API call
-        self.extractor.client.models.generate_content.assert_called_once()
-        
-        # Verify empty result due to parsing error
-        assert units == []
-    
-    def test_invalid_response_structure(self):
-        """Test handling of invalid response structure."""
-        # Setup the mock to return valid JSON but with wrong structure
-        mock_response = MagicMock()
-        mock_response.text = json.dumps({"not_a_list": "this is an object, not a list"})
-        self.extractor.client.models.generate_content.return_value = mock_response
-        
-        # Extract knowledge units with invalid response structure
-        units = self.extractor.extract_knowledge_units(self.sample_text)
-        
-        # Verify API call
-        self.extractor.client.models.generate_content.assert_called_once()
-        
-        # Verify empty result due to wrong structure
-        assert units == []
-    
+
+    def test_llm_provider_error_handling(self):
+        """Test handling of LLM provider errors."""
+        # Setup the mock to raise an exception
+        self.mock_llm_provider.extract_knowledge_units.side_effect = Exception("LLM error")
+
+        # Extract knowledge units should raise RuntimeError
+        with pytest.raises(RuntimeError):
+            asyncio.run(self.extractor.extract_knowledge_units(self.sample_text))
+
+    def test_llm_provider_already_connected(self):
+        """Test behavior when LLM provider is already connected."""
+        # Setup the mock to be already connected
+        self.mock_llm_provider.is_connected = True
+
+        # Extract knowledge units
+        units = asyncio.run(self.extractor.extract_knowledge_units(self.sample_text))
+
+        # Verify connect was not called since already connected
+        self.mock_llm_provider.connect.assert_not_called()
+        self.mock_llm_provider.extract_knowledge_units.assert_called_once_with(self.sample_text)
+
+        # Verify results
+        assert len(units) == 3
+
     def test_extract_knowledge_units_function(self):
         """Test the standalone extract_knowledge_units function."""
-        with patch('memory_core.ingestion.advanced_extractor.AdvancedExtractor') as mock_extractor_class:
+        with patch(
+            "memory_core.ingestion.advanced_extractor.AdvancedExtractor"
+        ) as mock_extractor_class:
             # Setup the mock instance
             mock_extractor = MagicMock()
             mock_extractor_class.return_value = mock_extractor
-            mock_extractor.extract_knowledge_units.return_value = self.mock_units
-            
+            mock_extractor.extract_knowledge_units = AsyncMock(return_value=self.mock_units)
+
             # Call the function
-            result = extract_knowledge_units(self.sample_text)
-            
+            result = asyncio.run(extract_knowledge_units(self.sample_text))
+
             # Verify extractor was created and method was called
             mock_extractor_class.assert_called_once()
             mock_extractor.extract_knowledge_units.assert_called_once_with(self.sample_text)
-            
+
             # Verify result
             assert result == self.mock_units
-    
-    def test_markdown_code_block_cleanup(self):
-        """Test handling of markdown code blocks in LLM responses."""
-        # Setup the mock to return JSON wrapped in markdown code block
-        mock_response = MagicMock()
-        mock_response.text = "```json\n" + json.dumps(self.mock_units) + "\n```"
-        self.extractor.client.models.generate_content.return_value = mock_response
-        
-        # Extract knowledge units
-        units = self.extractor.extract_knowledge_units(self.sample_text)
-        
-        # Verify API call
-        self.extractor.client.models.generate_content.assert_called_once()
-        
-        # Verify results were correctly parsed despite markdown formatting
+
+    def test_async_behavior(self):
+        """Test that the async behavior works correctly."""
+
+        # Test that the method can be called with await
+        async def test_async():
+            units = await self.extractor.extract_knowledge_units(self.sample_text)
+            return units
+
+        # Run the async function
+        units = asyncio.run(test_async())
+
+        # Verify results
         assert len(units) == 3
         assert units[0]["content"] == self.mock_units[0]["content"]
 
@@ -220,16 +217,16 @@ class TestAdvancedExtractor(unittest.TestCase):
 @pytest.mark.integration
 class TestAdvancedExtractorIntegration:
     """Integration tests for AdvancedExtractor with real Gemini API."""
-    
+
     def setup_method(self):
         """Set up the test with actual connection to Gemini API."""
         # Skip if API key not set
-        if not os.getenv('GOOGLE_API_KEY'):
+        if not os.getenv("GOOGLE_API_KEY"):
             pytest.skip("GOOGLE_API_KEY environment variable not set")
-        
+
         # Create extractor
         self.extractor = AdvancedExtractor()
-        
+
         # Sample text for testing
         self.ai_text = """
         Artificial intelligence (AI) is transforming healthcare through applications 
@@ -239,15 +236,15 @@ class TestAdvancedExtractorIntegration:
         treatments. However, these systems face challenges including data privacy concerns, 
         potential bias in training data, and questions around medical liability.
         """
-        
+
         self.short_text = "Hello world"
-    
+
     def test_live_extract_knowledge_units(self):
         """Test extracting knowledge units with real Gemini API."""
         try:
             # Extract knowledge units
             units = self.extractor.extract_knowledge_units(self.ai_text)
-            
+
             # Verify result structure
             assert len(units) > 0
             for unit in units:
@@ -258,13 +255,13 @@ class TestAdvancedExtractorIntegration:
                 assert isinstance(unit["metadata"], dict)
         except Exception as e:
             pytest.skip(f"Gemini API error: {str(e)}")
-    
+
     def test_live_extract_empty_result(self):
         """Test extracting knowledge units from text that's too short."""
         try:
             # Extract knowledge units from short text
             units = self.extractor.extract_knowledge_units(self.short_text)
-            
+
             # Should return empty list or very few items as the text is minimal
             assert isinstance(units, list)
             if units:  # If not empty, check structure
