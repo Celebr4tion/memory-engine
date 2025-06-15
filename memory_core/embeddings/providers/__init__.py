@@ -2,7 +2,7 @@
 Embedding providers and factory system.
 """
 
-from typing import Dict, Type, Optional, Any
+from typing import Dict, Type, Optional, Any, List
 from memory_core.embeddings.interfaces import EmbeddingProviderInterface
 
 # Import all providers
