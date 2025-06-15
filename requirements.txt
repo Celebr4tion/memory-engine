@@ -56,6 +56,8 @@ flask
 openai
 google-genai
 anthropic
+transformers
+torch
 
 # Google Agent Development Kit
 google-adk
