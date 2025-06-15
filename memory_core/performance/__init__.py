@@ -13,8 +13,8 @@ from .cache_manager import CacheManager, CacheConfig
 from .connection_pool import ConnectionPoolManager
 from .batch_optimizer import BatchOptimizer
 from .memory_manager import MemoryManager
-from .performance_monitor import PerformanceMonitor
-from .metrics_collector import MetricsCollector
+from .metrics_collector import MetricsCollector, PerformanceMonitor
+from .prepared_statements import PreparedStatementManager
 
 __all__ = [
     'CacheManager',
@@ -22,6 +22,7 @@ __all__ = [
     'ConnectionPoolManager',
     'BatchOptimizer',
     'MemoryManager',
+    'MetricsCollector',
     'PerformanceMonitor',
-    'MetricsCollector'
+    'PreparedStatementManager'
 ]
