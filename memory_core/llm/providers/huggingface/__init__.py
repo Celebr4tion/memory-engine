@@ -7,4 +7,4 @@ supporting both local model execution and HuggingFace Inference API.
 
 from .huggingface_provider import HuggingFaceLLMProvider
 
-__all__ = ['HuggingFaceLLMProvider']
+__all__ = ["HuggingFaceLLMProvider"]

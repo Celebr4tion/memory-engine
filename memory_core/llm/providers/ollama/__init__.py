@@ -7,4 +7,4 @@ without requiring external API services.
 
 from .ollama_provider import OllamaLLMProvider
 
-__all__ = ['OllamaLLMProvider']
+__all__ = ["OllamaLLMProvider"]

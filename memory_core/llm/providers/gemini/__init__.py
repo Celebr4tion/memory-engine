@@ -8,6 +8,4 @@ and natural language query processing.
 
 from .gemini_provider import GeminiLLMProvider
 
-__all__ = [
-    'GeminiLLMProvider'
-]
+__all__ = ["GeminiLLMProvider"]

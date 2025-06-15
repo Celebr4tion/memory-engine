@@ -7,4 +7,4 @@ for the Memory Engine's LLM provider interface.
 
 from .openai_provider import OpenAILLMProvider
 
-__all__ = ['OpenAILLMProvider']
+__all__ = ["OpenAILLMProvider"]
