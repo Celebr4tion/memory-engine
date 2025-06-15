@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "memory-engine"
-version = "0.3.0"
+version = "0.4.0"
 authors = [
     {name = "Janek Wenning", email = "noreply@github.com"},
 ]
@@ -69,7 +69,7 @@ sqlite = [
 "Source" = "https://github.com/Celebr4tion/memory-engine"
 
 [project.scripts]
-memory-engine = "memory_core.cli:main"
+memory-engine = "memory_engine_cli:main"
 
 [tool.setuptools.packages.find]
 include = ["memory_core*"]
