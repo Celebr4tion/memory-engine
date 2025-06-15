@@ -55,6 +55,7 @@ flask
 # LLM API
 openai
 google-genai
+anthropic
 
 # Google Agent Development Kit
 google-adk

@@ -150,6 +150,10 @@ embedding:
 
 # LLM Configuration
 llm:
+  # Default provider
+  provider: "gemini"  # Options: "gemini", "openai", "ollama", "anthropic", "huggingface"
+  
+  # Legacy configuration (for backwards compatibility)
   model: "gemini-2.0-flash-thinking-exp"
   fallback_model: "gemini-2.0-flash-exp"
   temperature: 0.7
@@ -157,6 +161,58 @@ llm:
   timeout: 60
   max_retries: 3
   retry_delay: 1.0
+  
+  # Provider-specific configurations
+  gemini:
+    api_key: null  # Set via GOOGLE_API_KEY environment variable
+    model_name: "gemini-2.0-flash-thinking-exp"
+    fallback_model: "gemini-2.0-flash-exp"
+    temperature: 0.7
+    max_tokens: 4096
+    timeout: 60
+    safety_settings: null
+    generation_config: null
+  
+  openai:
+    api_key: null  # Set via OPENAI_API_KEY environment variable
+    model_name: "gpt-4o-mini"
+    temperature: 0.7
+    max_tokens: 4096
+    timeout: 30
+    organization: null
+    base_url: null
+    top_p: 1.0
+    frequency_penalty: 0.0
+    presence_penalty: 0.0
+  
+  ollama:
+    base_url: "http://localhost:11434"
+    model_name: "llama2"
+    temperature: 0.7
+    max_tokens: 4096
+    timeout: 60
+    top_p: 0.9
+    top_k: 40
+    keep_alive: "5m"
+    repeat_penalty: 1.1
+  
+  anthropic:
+    api_key: null  # Set via ANTHROPIC_API_KEY environment variable
+    model_name: "claude-3-5-sonnet-20241022"
+    temperature: 0.7
+    max_tokens: 4096
+    timeout: 30
+    top_p: 0.9
+    top_k: null
+  
+  huggingface:
+    api_key: null  # Set via HUGGINGFACE_API_KEY environment variable
+    model_name: "microsoft/DialoGPT-medium"
+    temperature: 0.7
+    max_tokens: 4096
+    timeout: 30
+    device: "cpu"
+    torch_dtype: "auto"
 
 # API Configuration (API keys loaded from environment variables)
 api:
