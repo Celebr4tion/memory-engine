@@ -10,10 +10,8 @@ import re
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
 
-from google import genai
-from google.genai import types
-
 from memory_core.config.config_manager import get_config
+from memory_core.llm.providers.gemini import GeminiLLMProvider
 from .query_types import QueryType, FilterCondition, SortCriteria, SortOrder, GraphPattern
 
 
@@ -47,20 +45,27 @@ class NaturalLanguageQueryProcessor:
     """
     Processes natural language queries and converts them to structured graph queries.
     
-    Uses LLM to understand query intent and extract relevant graph patterns.
+    Uses modular LLM provider system to understand query intent and extract relevant graph patterns.
     """
     
     def __init__(self):
         self.config = get_config()
         self.logger = logging.getLogger(__name__)
         
-        # Initialize Gemini client
+        # Initialize LLM provider
         api_key = self.config.config.api.google_api_key
         if not api_key:
             raise ValueError("GOOGLE_API_KEY not configured for natural language processing")
         
-        self.client = genai.Client(api_key=api_key)
-        self.model = self.config.config.llm.model
+        llm_config = {
+            'api_key': api_key,
+            'model_name': self.config.config.llm.model,
+            'temperature': self.config.config.llm.temperature,
+            'max_tokens': self.config.config.llm.max_tokens,
+            'timeout': self.config.config.llm.timeout,
+        }
+        
+        self.llm_provider = GeminiLLMProvider(llm_config)
         
         # Common patterns for query classification
         self.query_patterns = {
@@ -84,7 +89,7 @@ class NaturalLanguageQueryProcessor:
             ]
         }
     
-    def process_query(self, query: str, context: Optional[str] = None) -> ParsedQuery:
+    async def process_query(self, query: str, context: Optional[str] = None) -> ParsedQuery:
         """
         Process a natural language query and extract structured information.
         
@@ -101,7 +106,7 @@ class NaturalLanguageQueryProcessor:
         basic_classification = self._classify_query_basic(query)
         
         # Use LLM for complex parsing
-        llm_result = self._parse_with_llm(query, context)
+        llm_result = await self._parse_with_llm(query, context)
         
         # Combine results
         parsed_query = self._combine_parsing_results(query, basic_classification, llm_result)
@@ -152,7 +157,7 @@ class NaturalLanguageQueryProcessor:
         classification['confidence'] = min(classification['confidence'], 1.0)
         return classification
     
-    def _parse_with_llm(self, query: str, context: Optional[str] = None) -> Dict[str, Any]:
+    async def _parse_with_llm(self, query: str, context: Optional[str] = None) -> Dict[str, Any]:
         """
         Use LLM to parse complex natural language queries.
         
@@ -163,23 +168,13 @@ class NaturalLanguageQueryProcessor:
         Returns:
             LLM parsing results
         """
-        prompt = self._create_parsing_prompt(query, context)
-        
         try:
-            gen_config = types.GenerateContentConfig(
-                temperature=0.1,  # Low temperature for consistent parsing
-                top_p=0.9,
-                max_output_tokens=2048,
-                response_mime_type="application/json"
-            )
+            # Ensure LLM provider is connected
+            if not self.llm_provider.is_connected:
+                await self.llm_provider.connect()
             
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=prompt,
-                config=gen_config
-            )
-            
-            result = json.loads(response.text)
+            # Use the LLM provider's natural language query parsing method
+            result = await self.llm_provider.parse_natural_language_query(query, context)
             return result
             
         except Exception as e:
@@ -193,67 +188,6 @@ class NaturalLanguageQueryProcessor:
                 'confidence': 0.0
             }
     
-    def _create_parsing_prompt(self, query: str, context: Optional[str] = None) -> str:
-        """
-        Create a prompt for LLM to parse the natural language query.
-        
-        Args:
-            query: Natural language query
-            context: Optional context
-            
-        Returns:
-            Formatted prompt string
-        """
-        context_part = f"\nContext: {context}" if context else ""
-        
-        return f"""You are an expert at parsing natural language queries for a knowledge graph database.
-Analyze the following query and extract structured information.
-
-Query: "{query}"{context_part}
-
-Return a JSON object with the following structure:
-{{
-    "intent": "<primary intent: search, find_relationships, aggregate, compare, etc.>",
-    "entities": ["<list of entities/concepts mentioned>"],
-    "relationships": ["<list of relationships mentioned>"],
-    "constraints": ["<list of constraints/filters mentioned>"],
-    "query_type": "<one of: natural_language, graph_pattern, semantic_search, relationship_search, aggregation, hybrid>",
-    "semantic_keywords": ["<key terms for semantic search>"],
-    "confidence": <float between 0 and 1>,
-    "graph_pattern": {{
-        "nodes": [
-            {{"type": "<node type>", "properties": {{"key": "value"}}, "variable": "<variable name>"}}
-        ],
-        "edges": [
-            {{"type": "<relationship type>", "from": "<source variable>", "to": "<target variable>", "properties": {{}}}}
-        ],
-        "constraints": ["<gremlin-style constraints>"]
-    }},
-    "filters": [
-        {{"field": "<field name>", "operator": "<eq|ne|gt|lt|contains|regex>", "value": "<filter value>"}}
-    ],
-    "sort_criteria": [
-        {{"field": "<field name>", "order": "<asc|desc>"}}
-    ],
-    "aggregations": [
-        {{"type": "<count|sum|avg|min|max>", "field": "<field name>"}}
-    ]
-}}
-
-Guidelines:
-- For similarity/semantic queries, focus on semantic_keywords
-- For relationship queries, identify source and target entities
-- For aggregation queries, identify what to count/sum/etc
-- Extract any mentioned filters, sorting, or constraints
-- Be conservative with confidence scores
-- Use graph_pattern for structured queries that can be represented as node-edge patterns
-
-Examples:
-- "Find nodes similar to 'artificial intelligence'" → semantic_search
-- "Show relationships between Python and machine learning" → relationship_search  
-- "Count how many programming languages are mentioned" → aggregation
-- "Find all concepts related to databases created after 2020" → graph_pattern with constraints
-"""
     
     def _combine_parsing_results(self, original_query: str, basic: Dict[str, Any], llm: Dict[str, Any]) -> ParsedQuery:
         """

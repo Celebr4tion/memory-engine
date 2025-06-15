@@ -10,16 +10,14 @@ import logging
 import time
 from typing import List, Dict, Any, Optional
 
-from google import genai
-# Import types for GenerationConfig
-from google.genai import types
 from memory_core.config import get_config
+from memory_core.llm.providers.gemini import GeminiLLMProvider
 
 class AdvancedExtractor:
     """
     Extracts structured knowledge units from raw text using LLMs.
     
-    This class leverages the Gemini API to parse raw text into discrete
+    This class leverages the modular LLM provider system to parse raw text into discrete
     knowledge units, each containing structured information about the content.
     """
     
@@ -27,78 +25,28 @@ class AdvancedExtractor:
         """
         Initialize the advanced extractor.
         
-        Sets up the Gemini client for LLM interactions.
+        Sets up the LLM provider for knowledge extraction.
         """
         self.logger = logging.getLogger(__name__)
         self.config = get_config()
         
-        # Initialize Gemini client using genai.Client
+        # Initialize LLM provider
         api_key = self.config.config.api.google_api_key
         if not api_key:
             raise ValueError("GOOGLE_API_KEY not configured. Set it via environment variable or configuration file.")
-        self.client = genai.Client(api_key=api_key) 
-        self.model = self.config.config.llm.model
+        
+        llm_config = {
+            'api_key': api_key,
+            'model_name': self.config.config.llm.model,
+            'temperature': self.config.config.llm.temperature,
+            'max_tokens': self.config.config.llm.max_tokens,
+            'timeout': self.config.config.llm.timeout,
+        }
+        
+        self.llm_provider = GeminiLLMProvider(llm_config)
     
-    def _clean_markdown_json(self, text: str) -> str:
-        """
-        Clean markdown code blocks from response text.
-        
-        Args:
-            text: Raw response text that might contain markdown
-            
-        Returns:
-            Cleaned JSON text
-        """
-        import re
-        
-        # Remove markdown code blocks (```json ... ```)
-        text = re.sub(r'^```(?:json)?\s*\n', '', text, flags=re.MULTILINE)
-        text = re.sub(r'\n```\s*$', '', text, flags=re.MULTILINE)
-        
-        # Remove leading/trailing whitespace
-        text = text.strip()
-        
-        return text
-        
-    def _create_prompt(self, raw_text: str) -> str:
-        """
-        Create a prompt for the LLM to extract knowledge units.
-        
-        Args:
-            raw_text: The raw text to extract knowledge from
-            
-        Returns:
-            A formatted prompt string
-        """
-        return f"""You are an expert at transforming raw text into structured knowledge units.
-                For each distinct piece of knowledge in the text, return a JSON object with this format:
-                {{
-                "content": "<short statement capturing a single knowledge unit>",
-                "tags": ["<tag1>", "<tag2>", ...],
-                "metadata": {{
-                    "confidence_level": "<float between 0 and 1>",
-                    "domain": "<primary knowledge domain>",
-                    "language": "<language of the content>",
-                    "importance": "<float between 0 and 1>"
-                }},
-                "source": {{
-                    "type": "<source type: webpage, book, scientific_paper, video, user_input, etc.>",
-                    "url": "<url if applicable>",
-                    "reference": "<citation or reference information>",
-                    "page": "<page number if applicable>"
-                }}
-                }}
 
-                Extract as many meaningful knowledge units as possible from the input. If the text is too short, 
-                ambiguous, or doesn't contain meaningful information, return an empty list: [].
-
-                Format your entire response as a valid JSON array of these objects.
-
-                Text input:
-                {raw_text}
-                """
-
-    def extract_knowledge_units(self, raw_text: str) -> List[Dict[str, Any]]:
+    async def extract_knowledge_units(self, raw_text: str) -> List[Dict[str, Any]]:
         """
         Generate and extract knowledge units from raw text.
         
@@ -115,62 +63,19 @@ class AdvancedExtractor:
         if not raw_text or not raw_text.strip():
             return []
         
-        response = None  # Initialize response to None
         try:
-            # Prepare prompt
-            prompt = self._create_prompt(raw_text)
+            # Ensure LLM provider is connected
+            if not self.llm_provider.is_connected:
+                await self.llm_provider.connect()
             
-            # Create GenerateContentConfig object
-            gen_config = types.GenerateContentConfig(
-                temperature=self.config.config.llm.temperature,
-                top_p=0.95,
-                top_k=40,
-                max_output_tokens=self.config.config.llm.max_tokens,
-                # Ensure response is JSON
-                response_mime_type="application/json" 
-            )
+            # Use the LLM provider's knowledge extraction method
+            knowledge_units = await self.llm_provider.extract_knowledge_units(raw_text)
             
-            # Pass GenerateContentConfig object to generation_config parameter
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=prompt,
-                config=gen_config # Pass the config object
-            )
+            self.logger.info(f"Extracted {len(knowledge_units)} knowledge units from text")
+            return knowledge_units
             
-            # Extract JSON from response
-            try:
-                # Access text directly from response.text
-                response_text = response.text
-                
-                # Clean up markdown code blocks if present
-                response_text = self._clean_markdown_json(response_text)
-                
-                # Parse JSON
-                knowledge_units = json.loads(response_text)
-                
-                # Validate the response structure
-                if not isinstance(knowledge_units, list):
-                    return []
-                
-                # Filter out any malformed units
-                valid_units = []
-                for unit in knowledge_units:
-                    if isinstance(unit, dict) and "content" in unit:
-                        valid_units.append(unit)
-                
-                return valid_units
-            except json.JSONDecodeError as e:
-                self.logger.error(f"Failed to parse LLM response as JSON: {str(e)}")
-                self.logger.debug(f"Raw response: {response_text}")
-                return []
-                
         except Exception as e:
             self.logger.error(f"Error extracting knowledge units: {str(e)}")
-            if response:
-                if hasattr(response, 'prompt_feedback'):
-                    self.logger.error(f"Prompt Feedback: {response.prompt_feedback}")
-                if hasattr(response, 'candidates') and not response.candidates:
-                    self.logger.error("No candidates returned in the response.")
             raise RuntimeError(f"Failed to extract knowledge units: {str(e)}")
 
 
@@ -283,7 +188,7 @@ def process_extracted_units(units: List[Dict[str, Any]], source_label: str,
 
 
 # Function to directly use the extractor
-def extract_knowledge_units(raw_text: str) -> List[Dict[str, Any]]:
+async def extract_knowledge_units(raw_text: str) -> List[Dict[str, Any]]:
     """
     Extract structured knowledge units from raw text using LLM.
     
@@ -300,4 +205,4 @@ def extract_knowledge_units(raw_text: str) -> List[Dict[str, Any]]:
         RuntimeError: If extraction fails due to API or parsing errors
     """
     extractor = AdvancedExtractor()
-    return extractor.extract_knowledge_units(raw_text)
+    return await extractor.extract_knowledge_units(raw_text)
