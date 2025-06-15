@@ -7,6 +7,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-06-15
+
+### Added - Orchestrator Integration & Advanced Features
+
+#### Enhanced MCP Interface with Streaming Support
+- **Streaming Responses**: Support for large operations with progress callbacks and partial result delivery
+- **Operation Cancellation**: Real-time cancellation capabilities for long-running tasks
+- **Batch Processing**: High-throughput batch operations with progress tracking
+- **Progress Callbacks**: Real-time feedback for streaming operations with detailed progress information
+- **Streaming MCP Server**: Enhanced server implementation with comprehensive request handling
+
+#### GraphQL-like Query Language
+- **Flexible Query Builder**: Fluent API for constructing complex queries with method chaining
+- **Advanced Filtering**: Multiple operators (EQ, GT, CONTAINS, REGEX, etc.) with complex condition support
+- **Field Projection**: Selective field retrieval with nested projection capabilities
+- **Query Aggregation**: Count, sum, average, min/max operations with custom aliases
+- **Sorting & Pagination**: Multi-field sorting with configurable limits and offsets
+- **Query Validation**: Comprehensive validation with field and operator verification
+- **Semantic Search Integration**: Native semantic search support within query language
+
+#### Inter-Module Communication Event System
+- **Comprehensive Event System**: Publish/subscribe pattern with event types and priorities
+- **Event Persistence**: Reliable event storage with replay capabilities for system recovery
+- **Dead Letter Queue**: Failed event handling with retry logic and manual intervention support
+- **Batch Processing**: Event batching for high-performance scenarios with configurable thresholds
+- **Event Throttling**: Rate limiting to prevent system overload
+- **Event Metrics**: Detailed performance tracking and system health monitoring
+- **Async/Sync Handlers**: Support for both synchronous and asynchronous event handlers
+- **Event Filtering**: Advanced filtering capabilities for targeted event processing
+
+#### Module Registry with Capability Advertisement
+- **Centralized Registration**: Dynamic module discovery and registration system
+- **Capability Matching**: Intelligent matching of module capabilities with consumer requirements
+- **Version Negotiation**: Automatic version compatibility checking and negotiation
+- **Dependency Resolution**: Smart dependency ordering and initialization management
+- **Health Monitoring**: Continuous module health tracking with status reporting
+- **Persistent Storage**: Module state persistence with recovery capabilities
+- **Module Lifecycle**: Complete lifecycle management from registration to deactivation
+
+#### Standardized Data Formats and Interfaces
+- **Cross-Module Entity Resolution**: Unified entity identification across different modules
+- **Standardized Identifiers**: Consistent ID generation with type and source tracking
+- **Unified Error Responses**: Standardized error handling with detailed error codes and context
+- **Operation Result Wrappers**: Consistent response format with success/failure status
+- **Schema Validation**: Automatic data validation with comprehensive error reporting
+- **Data Format Conversion**: Seamless conversion between different data representations
+- **Protocol Handlers**: Pluggable communication protocols for inter-module messaging
+
+#### CLI Management Tools Integration
+- **Enhanced CLI Commands**: Extended command set for orchestrator management
+- **System Status Monitoring**: Real-time system status and health reporting
+- **Module Management**: CLI commands for module registration and lifecycle management
+- **Event System Control**: Command-line interface for event system management
+- **Query Language Testing**: Interactive query builder and testing tools
+
+### Changed
+- **Architecture**: Enhanced with orchestrator layer for better module coordination
+- **MCP Interface**: Extended with streaming capabilities and advanced query support
+- **Version**: Updated to 0.5.0 across all configuration files and documentation
+- **Module Structure**: Reorganized with dedicated orchestrator integration module
+- **CLI Interface**: Extended with orchestrator-specific management commands
+
+### Technical Improvements
+- **Streaming Architecture**: Full async/await support with cancellation and progress tracking
+- **Event-Driven Design**: Comprehensive event system for loose coupling between modules
+- **Query Optimization**: Advanced query building with validation and optimization
+- **Module Coordination**: Intelligent module registry with dependency resolution
+- **Error Handling**: Unified error handling across all orchestrator components
+- **Performance Monitoring**: Built-in metrics collection and health monitoring
+- **Extensibility**: Plugin-like architecture for easy extension and customization
+
+### Enhanced Features
+- **Real-time Operations**: Streaming support enables real-time data processing
+- **Advanced Analytics**: GraphQL-like queries enable complex data analysis
+- **System Reliability**: Event persistence and replay ensure system resilience
+- **Module Ecosystem**: Registry system enables modular and extensible architecture
+- **Operational Excellence**: Comprehensive monitoring and management capabilities
+
+### Breaking Changes
+- Orchestrator module introduces new configuration options
+- MCP interface extended with streaming methods (backwards compatible)
+- Event system requires opt-in configuration for persistence features
+- Query language introduces new query format (legacy format still supported)
+
+### Migration Guide
+- Review orchestrator configuration options in `config.yaml`
+- Update MCP clients to use new streaming capabilities if desired
+- Configure event system persistence and batching settings
+- Migrate complex queries to new GraphQL-like syntax for better performance
+- Update CLI scripts to use new orchestrator management commands
+
 ## [0.4.0] - 2025-06-15
 
 ### Added - Production Readiness & Performance Optimization
@@ -362,6 +453,8 @@ This project builds upon excellent open source technologies:
 
 | Version | Release Date | Description |
 |---------|--------------|-------------|
+| 0.5.0   | 2025-06-15   | Orchestrator integration with streaming MCP and event system |
+| 0.4.0   | 2025-06-15   | Production readiness with performance optimization |
 | 0.3.0   | 2025-06-15   | LLM independence and local operation support |
 | 0.2.1   | 2025-06-13   | Modular embedding system with multiple providers |
 | 0.2.0   | 2025-06-11   | Modular storage backends and configuration system |

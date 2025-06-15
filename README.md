@@ -12,7 +12,7 @@ Memory Engine is an experimental knowledge management system that transforms uns
 
 ## 🚧 Project Status
 
-**This project is currently in active development (v0.4.0 - Production Readiness) and should be considered experimental.**
+**This project is currently in active development (v0.5.0 - Orchestrator Integration) and should be considered experimental.**
 
 ### Vision
 
@@ -157,7 +157,7 @@ retrieved = engine.get_node(node_id)
 print(f"Content: {retrieved.content}")
 ```
 
-### 5. CLI Management (v0.4.0+)
+### 5. CLI Management (v0.4.0+) & Orchestrator Features (v0.5.0+)
 
 Memory Engine includes a comprehensive CLI for production management:
 
@@ -195,6 +195,22 @@ memory-engine config validate
 # System status
 memory-engine status
 memory-engine version
+
+# Orchestrator Integration (v0.5.0+)
+# Start streaming MCP operations
+memory-engine mcp stream-query --query="knowledge about AI" --batch-size=50
+
+# Manage event system
+memory-engine events list --status=pending
+memory-engine events replay --from-timestamp=1234567890
+
+# Module registry management
+memory-engine modules list --capabilities
+memory-engine modules register my-custom-module
+
+# Advanced GraphQL-like queries
+memory-engine query build --type=nodes --filter="content contains 'AI'" --limit=10
+memory-engine query execute --query-file=complex_query.json
 ```
 
 ## 📖 Documentation

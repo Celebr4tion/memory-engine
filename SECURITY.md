@@ -14,8 +14,10 @@ Security updates are provided on a best-effort basis:
 
 | Version | Status                |
 | ------- | -------------------- |
-| 0.3.x   | Current development  |
-| 0.2.x   | Maintenance only     |
+| 0.5.x   | Current development  |
+| 0.4.x   | Maintenance only     |
+| 0.3.x   | Legacy               |
+| 0.2.x   | Legacy               |
 | 0.1.x   | Legacy               |
 | < 0.1   | No support           |
 

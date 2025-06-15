@@ -1466,3 +1466,437 @@ def monitored_ingest(mcp, text, source):
         "source": source
     })
 ```
+
+## Orchestrator Integration API (v0.5.0+)
+
+The Memory Engine v0.5.0 introduces orchestrator integration with streaming MCP, GraphQL-like queries, event system, and module registry. These features provide advanced capabilities for high-performance and scalable knowledge management.
+
+### Streaming MCP Operations
+
+Streaming MCP operations allow for real-time processing of large datasets with progress callbacks and cancellation support.
+
+#### Starting a Streaming Query
+
+```python
+from memory_core.orchestrator.enhanced_mcp import EnhancedMCPServer
+from memory_core.orchestrator.query_language import QueryBuilder, QueryType
+
+# Initialize enhanced MCP server
+mcp_server = EnhancedMCPServer(knowledge_engine)
+
+# Start streaming query
+parameters = {
+    "query": "knowledge about artificial intelligence",
+    "limit": 1000,
+    "batch_size": 50
+}
+
+# Start the operation
+response = await mcp_server.handle_request("stream_query", parameters)
+operation_id = response["operation_id"]
+
+# Stream results
+async for result in mcp_server.stream_results(operation_id):
+    print(f"Progress: {result['progress']['current']}/{result['progress']['total']}")
+    if result['data']:
+        # Process batch of results
+        batch = result['data']['batch']
+        for item in batch:
+            print(f"Found: {item['content']}")
+```
+
+#### Streaming Bulk Import
+
+```python
+# Prepare data for import
+import_data = [
+    {"content": "Python is a programming language", "source": "Tech Book"},
+    {"content": "Machine learning uses algorithms", "source": "AI Book"},
+    # ... more data
+]
+
+# Start streaming import
+parameters = {
+    "data": import_data,
+    "batch_size": 10
+}
+
+response = await mcp_server.handle_request("stream_import", parameters)
+operation_id = response["operation_id"]
+
+# Monitor import progress
+async for result in mcp_server.stream_results(operation_id):
+    if result['state'] == 'streaming':
+        processed = result['data']['processed']
+        errors = result['data']['errors']
+        print(f"Imported: {processed}, Errors: {errors}")
+    elif result['state'] == 'completed':
+        print(f"Import completed! Success rate: {result['data']['success_rate']}")
+```
+
+### GraphQL-like Query Language
+
+The new query language provides flexible, powerful querying capabilities with filtering, aggregation, and projection.
+
+#### Basic Query Building
+
+```python
+from memory_core.orchestrator.query_language import (
+    QueryBuilder, QueryType, FilterOperator
+)
+
+# Build a query for nodes containing "AI" with high ratings
+query = (QueryBuilder()
+    .query_type(QueryType.NODES)
+    .where_contains("content", "AI")
+    .where_greater_than("rating_truthfulness", 0.8)
+    .select("id", "content", "rating_truthfulness", "source")
+    .order_by("rating_truthfulness", ascending=False)
+    .limit(10)
+    .build()
+)
+
+# Execute the query
+processor = GraphQLQueryProcessor(knowledge_engine)
+result = await processor.execute_query(query)
+
+if result["success"]:
+    for node in result["data"]:
+        print(f"Node: {node['content'][:50]}... (Rating: {node['rating_truthfulness']})")
+```
+
+#### Advanced Queries with Aggregation
+
+```python
+# Query with aggregation - count nodes by source
+aggregation_query = (QueryBuilder()
+    .query_type(QueryType.AGGREGATION)
+    .where_greater_than("rating_truthfulness", 0.7)
+    .group_by("source")
+    .count("*", "node_count")
+    .avg("rating_truthfulness", "avg_rating")
+    .build()
+)
+
+result = await processor.execute_query(aggregation_query)
+if result["success"]:
+    for source, stats in result["data"].items():
+        print(f"Source: {source}, Nodes: {stats['node_count']}, Avg Rating: {stats['avg_rating']:.2f}")
+```
+
+#### Complex Filtering and Search
+
+```python
+# Complex query with multiple filters and semantic search
+search_query = (QueryBuilder()
+    .query_type(QueryType.SEARCH)
+    .where_contains("content", "machine learning")
+    .where_in("source", ["AI Book", "ML Papers", "Research"])
+    .where("rating_importance", FilterOperator.GTE, 0.8)
+    .select("id", "content", "source", "rating_truthfulness", "rating_importance")
+    .order_by("rating_importance", ascending=False)
+    .limit(20)
+    .build()
+)
+
+result = await processor.execute_query(search_query)
+if result["success"]:
+    print(f"Found {result['returned_count']} of {result['total_count']} results")
+    for node in result["data"]:
+        print(f"- {node['content'][:80]}... ({node['source']})")
+```
+
+### Event System
+
+The event system enables inter-module communication with publish/subscribe patterns, persistence, and replay capabilities.
+
+#### Setting up Event System
+
+```python
+from memory_core.orchestrator.event_system import EventSystem
+from memory_core.orchestrator.event_system import EventType
+
+# Initialize event system
+event_system = EventSystem({
+    "event_bus": {
+        "enable_persistence": True,
+        "enable_batching": True,
+        "storage_path": "./data/events"
+    }
+})
+
+await event_system.initialize()
+
+# Create publisher and subscriber
+publisher = event_system.create_publisher("knowledge_processor")
+subscriber = event_system.create_subscriber("knowledge_monitor")
+```
+
+#### Publishing Events
+
+```python
+# Publish knowledge change events
+await publisher.publish_knowledge_change(
+    action="created",
+    node_id="node_123",
+    node_data={"content": "New knowledge", "source": "API"}
+)
+
+# Publish custom events
+await publisher.publish_custom_event(
+    "knowledge_validation",
+    {"node_id": "node_123", "validation_score": 0.95}
+)
+
+# Publish system events
+await publisher.publish_system_event(
+    "warning",
+    "storage_backend",
+    {"message": "High memory usage", "usage": "85%"}
+)
+```
+
+#### Subscribing to Events
+
+```python
+# Subscribe to knowledge events
+async def handle_knowledge_change(event):
+    print(f"Knowledge {event.data['action']}: {event.data['node_id']}")
+    # Update caches, trigger workflows, etc.
+
+subscriber.subscribe(EventType.KNOWLEDGE_NODE_CREATED, handle_knowledge_change)
+subscriber.subscribe(EventType.KNOWLEDGE_NODE_UPDATED, handle_knowledge_change)
+
+# Subscribe to custom events with filtering
+def high_score_filter(event):
+    return event.data.get("custom_data", {}).get("validation_score", 0) > 0.9
+
+async def handle_high_score_validation(event):
+    print(f"High-quality knowledge detected: {event.data}")
+
+subscriber.subscribe(EventType.CUSTOM, handle_high_score_validation, high_score_filter)
+```
+
+#### Event Replay and Recovery
+
+```python
+# Replay events from specific timestamp
+from_timestamp = 1640995200  # Unix timestamp
+
+replayed_count = await event_system.replay_events(from_timestamp)
+print(f"Replayed {replayed_count} events")
+
+# Get system metrics
+metrics = event_system.get_system_metrics()
+print(f"Events published: {metrics['event_bus']['events_published']}")
+print(f"Events processed: {metrics['event_bus']['events_processed']}")
+print(f"Success rate: {metrics['event_bus']['success_rate']:.2%}")
+```
+
+### Module Registry
+
+The module registry provides centralized module management with capability advertisement and dependency resolution.
+
+#### Registering Modules
+
+```python
+from memory_core.orchestrator.module_registry import (
+    ModuleRegistry, ModuleCapability, CapabilityType, Version
+)
+
+# Initialize module registry
+registry = ModuleRegistry()
+await registry.initialize()
+
+# Register a custom module
+capabilities = [
+    ModuleCapability(
+        capability_type=CapabilityType.DATA_PROCESSING,
+        name="text_extraction",
+        version=Version("1.2.0"),
+        description="Extract text from various document formats"
+    ),
+    ModuleCapability(
+        capability_type=CapabilityType.STORAGE,
+        name="custom_storage",
+        version=Version("2.0.1"),
+        description="Custom high-performance storage backend"
+    )
+]
+
+module_info = await registry.register_module(
+    module_id="document_processor",
+    name="Document Processing Module",
+    version=Version("1.0.0"),
+    capabilities=capabilities,
+    dependencies=["storage_backend"],
+    health_check_url="http://localhost:8080/health"
+)
+
+print(f"Registered module: {module_info.module_id}")
+```
+
+#### Discovering and Using Modules
+
+```python
+# Find modules with specific capabilities
+storage_modules = await registry.find_modules_by_capability(
+    CapabilityType.STORAGE,
+    min_version=Version("1.0.0")
+)
+
+for module in storage_modules:
+    print(f"Storage module: {module.name} v{module.version}")
+
+# Check module health
+health_status = await registry.check_module_health("document_processor")
+print(f"Module health: {health_status}")
+
+# Get dependency order for initialization
+modules = await registry.get_all_modules()
+init_order = registry.dependency_resolver.resolve_dependencies(modules)
+print(f"Initialization order: {[m.module_id for m in init_order]}")
+```
+
+### Standardized Data Formats
+
+The orchestrator provides standardized interfaces for cross-module communication and entity resolution.
+
+#### Using Standardized Knowledge Entities
+
+```python
+from memory_core.orchestrator.data_formats import (
+    create_knowledge_entity, StandardizedIdentifier, EntityType
+)
+
+# Create standardized knowledge entity
+entity = create_knowledge_entity(
+    content="Quantum computing uses quantum bits for processing",
+    source="Quantum Physics Textbook",
+    entity_type=EntityType.CONCEPT,
+    metadata={
+        "domain": "quantum_computing",
+        "complexity": "advanced",
+        "references": ["textbook_ch5", "paper_123"]
+    }
+)
+
+print(f"Entity ID: {entity.identifier.id}")
+print(f"Entity Type: {entity.identifier.entity_type}")
+print(f"Source Module: {entity.identifier.source_module}")
+```
+
+#### Cross-Module Entity Resolution
+
+```python
+from memory_core.orchestrator.data_formats import (
+    EntityResolver, StandardizedQuery, OperationResult
+)
+
+# Initialize entity resolver
+resolver = EntityResolver()
+
+# Add entity from different modules
+entity1 = create_knowledge_entity("Machine learning", "AI_Module")
+entity2 = create_knowledge_entity("Machine learning algorithms", "ML_Module")
+
+# Resolve duplicates and conflicts
+resolution_result = await resolver.resolve_entities([entity1, entity2])
+
+if resolution_result.success:
+    canonical_entity = resolution_result.data["canonical_entity"]
+    print(f"Resolved to: {canonical_entity.content}")
+    print(f"Confidence: {resolution_result.data['confidence']}")
+else:
+    print(f"Resolution failed: {resolution_result.error}")
+```
+
+#### Unified Error Handling
+
+```python
+from memory_core.orchestrator.data_formats import UnifiedError, ErrorCode
+
+try:
+    # Some operation that might fail
+    result = await some_orchestrator_operation()
+except Exception as e:
+    # Create standardized error response
+    error = UnifiedError(
+        code=ErrorCode.PROCESSING_ERROR,
+        message="Failed to process knowledge entity",
+        details={"original_error": str(e), "entity_id": "ent_123"},
+        source_module="knowledge_processor",
+        timestamp=time.time()
+    )
+    
+    # Log or handle the standardized error
+    print(f"Error {error.code}: {error.message}")
+    print(f"Source: {error.source_module}")
+```
+
+### CLI Integration
+
+The v0.5.0 orchestrator features are also accessible via the enhanced CLI:
+
+```bash
+# Start streaming operations
+memory-engine mcp stream-query --query="AI research" --batch-size=50 --progress
+
+# Execute GraphQL-like queries
+memory-engine query build \
+    --type=nodes \
+    --filter="content contains 'machine learning'" \
+    --filter="rating_truthfulness > 0.8" \
+    --select="id,content,source" \
+    --limit=10 \
+    --execute
+
+# Manage event system
+memory-engine events list --status=pending --limit=20
+memory-engine events replay --from-timestamp=1640995200
+memory-engine events metrics --detailed
+
+# Module registry operations
+memory-engine modules list --capabilities --health-status
+memory-engine modules register my-module --capabilities=storage,processing
+memory-engine modules health-check --module=document_processor
+
+# Export orchestrator data
+memory-engine export --format=json --include-events --include-modules
+```
+
+### Error Handling for Orchestrator Features
+
+```python
+from memory_core.orchestrator.data_formats import ErrorCode, UnifiedError
+
+async def handle_orchestrator_operations():
+    try:
+        # Streaming operation
+        async for result in mcp_server.stream_results(operation_id):
+            if result['state'] == 'failed':
+                error = UnifiedError.from_dict(result['error'])
+                if error.code == ErrorCode.RESOURCE_EXHAUSTED:
+                    # Handle resource exhaustion
+                    await scale_resources()
+                elif error.code == ErrorCode.TIMEOUT:
+                    # Handle timeout
+                    await retry_operation(operation_id)
+                    
+    except Exception as e:
+        # Handle unexpected errors
+        logger.error(f"Orchestrator operation failed: {e}")
+        
+        # Create standardized error response
+        error_response = OperationResult(
+            success=False,
+            error=UnifiedError(
+                code=ErrorCode.INTERNAL_ERROR,
+                message="Orchestrator operation failed",
+                details={"exception": str(e)}
+            )
+        )
+        return error_response
+```
+
+This completes the API reference for Memory Engine v0.5.0 orchestrator integration features. The new capabilities provide powerful tools for building scalable, event-driven knowledge management systems with advanced querying and real-time processing capabilities.

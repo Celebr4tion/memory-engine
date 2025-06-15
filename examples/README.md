@@ -89,6 +89,31 @@ Demonstrates:
 
 **Run**: `python examples/ollama_llm_example.py`
 
+### 🔀 [orchestrator_integration_example.py](orchestrator_integration_example.py)
+**Orchestrator Integration features (New in v0.5.0)**
+
+Demonstrates:
+- Streaming MCP operations with progress callbacks
+- GraphQL-like query building and execution
+- Event system for inter-module communication
+- Module registry with capability advertisement
+- Standardized data formats and cross-module entity resolution
+- Real-time progress tracking and operation cancellation
+
+**Run**: `python examples/orchestrator_integration_example.py`
+
+### 📡 [event_system_example.py](event_system_example.py)
+**Event System demonstration (New in v0.5.0)**
+
+Demonstrates:
+- Publishing and subscribing to knowledge events
+- Event persistence and replay capabilities
+- Dead letter queue for failed events
+- Event batching and throttling
+- Metrics collection and health monitoring
+
+**Run**: `python examples/event_system_example.py`
+
 ## Prerequisites
 
 Before running the examples:
