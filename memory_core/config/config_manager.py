@@ -41,6 +41,15 @@ class VectorStoreType(Enum):
     MILVUS = "milvus"
     CHROMA = "chroma"
     FAISS = "faiss"
+    NUMPY = "numpy"
+    QDRANT = "qdrant"
+
+
+class EmbeddingProviderType(Enum):
+    GEMINI = "gemini"
+    OPENAI = "openai"
+    SENTENCE_TRANSFORMERS = "sentence_transformers"
+    OLLAMA = "ollama"
 
 
 @dataclass
@@ -98,13 +107,127 @@ class VectorStoreConfig:
 
 @dataclass
 class EmbeddingConfig:
-    """Embedding model configuration"""
+    """Legacy embedding model configuration (for backwards compatibility)"""
     model: str = "gemini-embedding-exp-03-07"
     dimension: int = 768  # Can be 768, 1536, or 3072 for gemini-embedding-exp-03-07
     batch_size: int = 32
     max_retries: int = 3
     retry_delay: float = 1.0
     timeout: int = 30
+
+
+@dataclass
+class GeminiEmbeddingConfig:
+    """Gemini embedding provider configuration"""
+    api_key: Optional[str] = None
+    model_name: str = "gemini-embedding-exp-03-07"
+    dimension: int = 768
+    max_batch_size: int = 32
+    timeout: int = 30
+
+
+@dataclass
+class OpenAIEmbeddingConfig:
+    """OpenAI embedding provider configuration"""
+    api_key: Optional[str] = None
+    model_name: str = "text-embedding-3-small"
+    dimension: int = 1536
+    max_batch_size: int = 100
+    timeout: int = 30
+    organization: Optional[str] = None
+    base_url: Optional[str] = None
+
+
+@dataclass
+class SentenceTransformersEmbeddingConfig:
+    """Sentence Transformers embedding provider configuration"""
+    model_name: str = "all-MiniLM-L6-v2"
+    device: str = "cpu"
+    max_batch_size: int = 64
+    trust_remote_code: bool = False
+    normalize_embeddings: bool = True
+    cache_folder: Optional[str] = None
+
+
+@dataclass
+class OllamaEmbeddingConfig:
+    """Ollama embedding provider configuration"""
+    model_name: str = "nomic-embed-text"
+    base_url: str = "http://localhost:11434"
+    max_batch_size: int = 32
+    timeout: int = 60
+    keep_alive: str = "5m"
+
+
+@dataclass
+class ModularEmbeddingConfig:
+    """Modular embedding system configuration"""
+    provider: EmbeddingProviderType = EmbeddingProviderType.GEMINI
+    gemini: GeminiEmbeddingConfig = field(default_factory=GeminiEmbeddingConfig)
+    openai: OpenAIEmbeddingConfig = field(default_factory=OpenAIEmbeddingConfig)
+    sentence_transformers: SentenceTransformersEmbeddingConfig = field(default_factory=SentenceTransformersEmbeddingConfig)
+    ollama: OllamaEmbeddingConfig = field(default_factory=OllamaEmbeddingConfig)
+
+
+@dataclass
+class ChromaVectorStoreConfig:
+    """ChromaDB vector store configuration"""
+    path: Optional[str] = None
+    collection_name: str = "knowledge_vectors"
+    dimension: int = 768
+    metric_type: str = "L2"
+    batch_size: int = 1000
+    host: Optional[str] = None
+    port: Optional[int] = None
+    ssl: bool = False
+    headers: Dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
+class NumpyVectorStoreConfig:
+    """NumPy vector store configuration"""
+    collection_name: str = "knowledge_vectors"
+    dimension: int = 768
+    metric_type: str = "L2"
+    persist_path: str = "./data/numpy_vectors"
+    auto_save: bool = True
+    max_memory_usage: int = 1000
+
+
+@dataclass
+class QdrantVectorStoreConfig:
+    """Qdrant vector store configuration"""
+    host: str = "localhost"
+    port: int = 6333
+    collection_name: str = "knowledge_vectors"
+    dimension: int = 768
+    metric_type: str = "COSINE"
+    api_key: Optional[str] = None
+    https: bool = False
+    timeout: int = 60
+
+
+@dataclass
+class FAISSVectorStoreConfig:
+    """FAISS vector store configuration"""
+    collection_name: str = "knowledge_vectors"
+    dimension: int = 768
+    metric_type: str = "L2"
+    index_type: str = "IndexFlatL2"
+    persist_path: str = "./data/faiss_vectors"
+    nlist: int = 1024
+    use_gpu: bool = False
+
+
+@dataclass
+class ModularVectorStoreConfig:
+    """Modular vector store configuration"""
+    backend: VectorStoreType = VectorStoreType.NUMPY
+    milvus: MilvusConfig = field(default_factory=MilvusConfig)
+    chroma: ChromaVectorStoreConfig = field(default_factory=ChromaVectorStoreConfig)
+    numpy: NumpyVectorStoreConfig = field(default_factory=NumpyVectorStoreConfig)
+    qdrant: QdrantVectorStoreConfig = field(default_factory=QdrantVectorStoreConfig)
+    faiss: FAISSVectorStoreConfig = field(default_factory=FAISSVectorStoreConfig)
 
 
 @dataclass
@@ -211,8 +334,15 @@ class AppConfig:
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
     storage: StorageConfig = field(default_factory=StorageConfig)
     janusgraph: JanusGraphConfig = field(default_factory=JanusGraphConfig)  # For backwards compatibility
+    
+    # Legacy configurations (for backwards compatibility)
     vector_store: VectorStoreConfig = field(default_factory=VectorStoreConfig)
     embedding: EmbeddingConfig = field(default_factory=EmbeddingConfig)
+    
+    # New modular configurations
+    embeddings: ModularEmbeddingConfig = field(default_factory=ModularEmbeddingConfig)
+    vector_stores: ModularVectorStoreConfig = field(default_factory=ModularVectorStoreConfig)
+    
     llm: LLMConfig = field(default_factory=LLMConfig)
     api: APIConfig = field(default_factory=APIConfig)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
@@ -553,6 +683,141 @@ class ConfigManager:
         if self._watch_thread and self._watch_thread.is_alive():
             self._watch_thread.join(timeout=5.0)
         self.logger.info("Stopped configuration file watching")
+    
+    def get_embedding_config(self) -> Dict[str, Any]:
+        """
+        Get embedding configuration for the modular embedding manager.
+        
+        Returns:
+            Dictionary with provider and provider_config keys
+        """
+        embeddings_config = self.config.embeddings
+        provider_type = embeddings_config.provider.value
+        
+        # Get provider-specific configuration
+        provider_config = {}
+        if provider_type == "gemini":
+            gemini_config = embeddings_config.gemini
+            provider_config = {
+                'api_key': gemini_config.api_key or self.config.api.google_api_key,
+                'model_name': gemini_config.model_name,
+                'dimension': gemini_config.dimension,
+                'max_batch_size': gemini_config.max_batch_size,
+                'timeout': gemini_config.timeout
+            }
+        elif provider_type == "openai":
+            openai_config = embeddings_config.openai
+            provider_config = {
+                'api_key': openai_config.api_key,
+                'model_name': openai_config.model_name,
+                'dimension': openai_config.dimension,
+                'max_batch_size': openai_config.max_batch_size,
+                'timeout': openai_config.timeout,
+                'organization': openai_config.organization,
+                'base_url': openai_config.base_url
+            }
+        elif provider_type == "sentence_transformers":
+            st_config = embeddings_config.sentence_transformers
+            provider_config = {
+                'model_name': st_config.model_name,
+                'device': st_config.device,
+                'max_batch_size': st_config.max_batch_size,
+                'trust_remote_code': st_config.trust_remote_code,
+                'normalize_embeddings': st_config.normalize_embeddings,
+                'cache_folder': st_config.cache_folder
+            }
+        elif provider_type == "ollama":
+            ollama_config = embeddings_config.ollama
+            provider_config = {
+                'model_name': ollama_config.model_name,
+                'base_url': ollama_config.base_url,
+                'max_batch_size': ollama_config.max_batch_size,
+                'timeout': ollama_config.timeout,
+                'keep_alive': ollama_config.keep_alive
+            }
+        
+        return {
+            'provider': provider_type,
+            'provider_config': provider_config
+        }
+    
+    def get_vector_store_config(self) -> Dict[str, Any]:
+        """
+        Get vector store configuration for the modular embedding manager.
+        
+        Returns:
+            Dictionary with backend and backend_config keys
+        """
+        vector_stores_config = self.config.vector_stores
+        backend_type = vector_stores_config.backend.value
+        
+        # Get backend-specific configuration
+        backend_config = {}
+        if backend_type == "milvus":
+            milvus_config = vector_stores_config.milvus
+            backend_config = {
+                'host': milvus_config.host,
+                'port': milvus_config.port,
+                'collection_name': milvus_config.collection_name,
+                'dimension': milvus_config.dimension,
+                'metric_type': milvus_config.metric_type,
+                'index_type': milvus_config.index_type,
+                'nlist': milvus_config.nlist,
+                'nprobe': milvus_config.nprobe,
+                'user': milvus_config.user,
+                'password': milvus_config.password
+            }
+        elif backend_type == "chroma":
+            chroma_config = vector_stores_config.chroma
+            backend_config = {
+                'path': chroma_config.path,
+                'collection_name': chroma_config.collection_name,
+                'dimension': chroma_config.dimension,
+                'metric_type': chroma_config.metric_type,
+                'batch_size': chroma_config.batch_size,
+                'host': chroma_config.host,
+                'port': chroma_config.port,
+                'ssl': chroma_config.ssl,
+                'headers': chroma_config.headers
+            }
+        elif backend_type == "numpy":
+            numpy_config = vector_stores_config.numpy
+            backend_config = {
+                'collection_name': numpy_config.collection_name,
+                'dimension': numpy_config.dimension,
+                'metric_type': numpy_config.metric_type,
+                'persist_path': numpy_config.persist_path,
+                'auto_save': numpy_config.auto_save,
+                'max_memory_usage': numpy_config.max_memory_usage
+            }
+        elif backend_type == "qdrant":
+            qdrant_config = vector_stores_config.qdrant
+            backend_config = {
+                'host': qdrant_config.host,
+                'port': qdrant_config.port,
+                'collection_name': qdrant_config.collection_name,
+                'dimension': qdrant_config.dimension,
+                'metric_type': qdrant_config.metric_type,
+                'api_key': qdrant_config.api_key,
+                'https': qdrant_config.https,
+                'timeout': qdrant_config.timeout
+            }
+        elif backend_type == "faiss":
+            faiss_config = vector_stores_config.faiss
+            backend_config = {
+                'collection_name': faiss_config.collection_name,
+                'dimension': faiss_config.dimension,
+                'metric_type': faiss_config.metric_type,
+                'index_type': faiss_config.index_type,
+                'persist_path': faiss_config.persist_path,
+                'nlist': faiss_config.nlist,
+                'use_gpu': faiss_config.use_gpu
+            }
+        
+        return {
+            'backend': backend_type,
+            'backend_config': backend_config
+        }
 
 
 # Global configuration instance

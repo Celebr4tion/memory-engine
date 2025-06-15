@@ -45,23 +45,101 @@ janusgraph:
   max_retry_attempts: 3
   retry_delay: 1.0
 
+# Modular Embedding System Configuration
+embeddings:
+  # Provider Configuration
+  provider: "gemini"  # Options: "gemini", "openai", "sentence_transformers", "ollama"
+  
+  # Provider-specific configurations
+  gemini:
+    api_key: null  # Set via GOOGLE_API_KEY environment variable
+    model_name: "gemini-embedding-exp-03-07"
+    dimension: 768
+    max_batch_size: 32
+    timeout: 30
+  
+  openai:
+    api_key: null  # Set via OPENAI_API_KEY environment variable
+    model_name: "text-embedding-3-small"
+    dimension: 1536
+    max_batch_size: 100
+    timeout: 30
+    organization: null  # Optional
+    base_url: null  # Optional custom endpoint
+  
+  sentence_transformers:
+    model_name: "all-MiniLM-L6-v2"
+    device: "cpu"  # Options: "cpu", "cuda", "auto"
+    max_batch_size: 64
+    trust_remote_code: false
+    normalize_embeddings: true
+    cache_folder: null  # Optional custom cache location
+  
+  ollama:
+    model_name: "nomic-embed-text"
+    base_url: "http://localhost:11434"
+    max_batch_size: 32
+    timeout: 60
+    keep_alive: "5m"
+
 # Vector Store Configuration
 vector_store:
-  type: "milvus"
-  dimension: 768
-  similarity_threshold: 0.7
-  max_results: 100
+  # Backend Configuration
+  backend: "numpy"  # Options: "milvus", "chroma", "numpy", "qdrant", "faiss"
+  
+  # Backend-specific configurations
   milvus:
     host: "localhost"
     port: 19530
     collection_name: "knowledge_vectors"
     dimension: 768
-    index_type: "IVF_FLAT"
     metric_type: "L2"
+    index_type: "IVF_FLAT"
     nlist: 1024
     nprobe: 10
+    user: null  # Optional authentication
+    password: null  # Optional authentication
+  
+  chroma:
+    path: null  # None for in-memory, path for persistent storage
+    collection_name: "knowledge_vectors"
+    dimension: 768
+    metric_type: "L2"  # Options: "L2", "COSINE", "IP"
+    batch_size: 1000
+    # Optional server mode
+    host: null
+    port: null
+    ssl: false
+    headers: {}
+  
+  numpy:
+    collection_name: "knowledge_vectors"
+    dimension: 768
+    metric_type: "L2"  # Options: "L2", "COSINE", "IP"
+    persist_path: "./data/numpy_vectors"
+    auto_save: true
+    max_memory_usage: 1000  # MB
+  
+  qdrant:
+    host: "localhost"
+    port: 6333
+    collection_name: "knowledge_vectors"
+    dimension: 768
+    metric_type: "COSINE"
+    api_key: null  # Optional authentication
+    https: false
+    timeout: 60
+  
+  faiss:
+    collection_name: "knowledge_vectors"
+    dimension: 768
+    metric_type: "L2"
+    index_type: "IndexFlatL2"
+    persist_path: "./data/faiss_vectors"
+    nlist: 1024  # For IVF indexes
+    use_gpu: false
 
-# Embedding Configuration
+# Legacy Embedding Configuration (for backwards compatibility)
 embedding:
   model: "gemini-embedding-exp-03-07"
   dimension: 768
