@@ -17,6 +17,12 @@ Usage:
     memory-engine config show [--section=SECTION]
     memory-engine config set KEY VALUE
     memory-engine config validate
+    memory-engine mcp stream-query --query=QUERY [--batch-size=SIZE] [--format=FORMAT]
+    memory-engine events list [--status=STATUS] [--limit=N]
+    memory-engine events publish --type=TYPE --data=DATA [--priority=PRIORITY]
+    memory-engine modules list [--capabilities] [--status=STATUS]
+    memory-engine modules register --name=NAME --capabilities=CAPS
+    memory-engine query build --type=TYPE [--filter=FILTER] [--fields=FIELDS]
     memory-engine version
     memory-engine --help
 
@@ -31,6 +37,10 @@ Commands:
     status              Show system status
     plugins             Manage plugins
     config              Manage configuration
+    mcp                 Enhanced MCP operations with streaming (v0.5.0)
+    events              Event system management (v0.5.0)
+    modules             Module registry operations (v0.5.0)
+    query               GraphQL-like query builder (v0.5.0)
     version             Show version information
 
 Options:
@@ -602,10 +612,14 @@ class MemoryEngineCLI:
     
     def version_command(self):
         """Show version information."""
-        print("Memory Engine CLI v0.4.0")
-        print("Production Readiness Release")
+        print("Memory Engine CLI v0.5.0")
+        print("Orchestrator Integration Release")
         print("")
         print("Features:")
+        print("• Enhanced MCP Interface with Streaming Support")
+        print("• GraphQL-like Query Language")
+        print("• Inter-Module Communication Event System")
+        print("• Module Registry with Capability Advertisement")
         print("• Advanced caching and performance optimization")
         print("• Comprehensive health monitoring")
         print("• Backend migration and data export/import")
@@ -663,6 +677,275 @@ class MemoryEngineCLI:
         if 'dependencies' in result:
             deps = result['dependencies']
             print(f"Dependencies: {deps.get('healthy_services', 0)}/{deps.get('total_services', 0)} healthy")
+    
+    async def mcp_command(self, action: str, query: str = None, batch_size: int = 50, format: str = 'json'):
+        """Handle MCP commands with streaming support."""
+        if action == "stream-query":
+            if not query:
+                print("❌ Stream query requires --query argument")
+                sys.exit(1)
+            
+            print(f"🔄 Executing streaming query: {query}")
+            print(f"   Batch size: {batch_size}")
+            
+            try:
+                await self.initialize()
+                
+                # Import orchestrator components
+                from memory_core.orchestrator.enhanced_mcp import EnhancedMCPServer, MCPStreaming
+                
+                # Create MCP server
+                mcp_server = EnhancedMCPServer(self.engine, self.config)
+                streaming = MCPStreaming()
+                
+                # Execute streaming query
+                total_results = 0
+                async for batch in streaming.stream_query(query, batch_size=batch_size):
+                    total_results += len(batch.results)
+                    
+                    if format == 'json':
+                        print(json.dumps({
+                            'batch_id': batch.batch_id,
+                            'results': [r.dict() for r in batch.results],
+                            'has_more': batch.has_more,
+                            'metadata': batch.metadata
+                        }, indent=2))
+                    else:
+                        print(f"Batch {batch.batch_id}: {len(batch.results)} results")
+                        for result in batch.results:
+                            print(f"  - {result}")
+                
+                print(f"\n✅ Query completed. Total results: {total_results}")
+                
+            except Exception as e:
+                print(f"❌ MCP stream query failed: {e}")
+                sys.exit(1)
+        else:
+            print(f"❌ Unknown MCP action: {action}")
+            sys.exit(1)
+    
+    async def events_command(self, action: str, status: str = None, limit: int = 100, 
+                           event_type: str = None, data: str = None, priority: str = 'medium'):
+        """Handle event system commands."""
+        if action == "list":
+            print(f"📋 Listing events...")
+            
+            try:
+                await self.initialize()
+                
+                # Import event system
+                from memory_core.orchestrator.event_system import EventSystem, EventStatus
+                
+                event_system = EventSystem()
+                
+                # Filter by status if provided
+                filter_status = None
+                if status:
+                    filter_status = EventStatus[status.upper()]
+                
+                # Get events
+                events = await event_system.get_events(status=filter_status, limit=limit)
+                
+                if not events:
+                    print("No events found")
+                    return
+                
+                print(f"Found {len(events)} events:\n")
+                
+                for event in events:
+                    status_emoji = {
+                        'pending': '⏳',
+                        'processing': '🔄',
+                        'completed': '✅',
+                        'failed': '❌'
+                    }
+                    
+                    emoji = status_emoji.get(event.status.value, '❓')
+                    print(f"{emoji} [{event.event_id}] {event.event_type.value}")
+                    print(f"    Priority: {event.priority.value}")
+                    print(f"    Status: {event.status.value}")
+                    print(f"    Created: {event.timestamp}")
+                    if event.error:
+                        print(f"    Error: {event.error}")
+                    print("")
+                
+            except Exception as e:
+                print(f"❌ Failed to list events: {e}")
+                sys.exit(1)
+                
+        elif action == "publish":
+            if not event_type or not data:
+                print("❌ Event publish requires --type and --data arguments")
+                sys.exit(1)
+            
+            print(f"📤 Publishing event...")
+            
+            try:
+                await self.initialize()
+                
+                # Import event system
+                from memory_core.orchestrator.event_system import EventSystem, EventType, EventPriority
+                
+                event_system = EventSystem()
+                
+                # Parse event data
+                try:
+                    event_data = json.loads(data)
+                except:
+                    event_data = {'message': data}
+                
+                # Publish event
+                event_id = await event_system.publish(
+                    event_type=EventType[event_type.upper()],
+                    data=event_data,
+                    priority=EventPriority[priority.upper()]
+                )
+                
+                print(f"✅ Event published successfully")
+                print(f"   Event ID: {event_id}")
+                
+            except Exception as e:
+                print(f"❌ Failed to publish event: {e}")
+                sys.exit(1)
+        else:
+            print(f"❌ Unknown events action: {action}")
+            sys.exit(1)
+    
+    async def modules_command(self, action: str, capabilities: bool = False, status: str = None,
+                            name: str = None, module_capabilities: str = None):
+        """Handle module registry commands."""
+        if action == "list":
+            print(f"📦 Listing registered modules...")
+            
+            try:
+                await self.initialize()
+                
+                # Import module registry
+                from memory_core.orchestrator.module_registry import ModuleRegistry
+                
+                registry = ModuleRegistry()
+                modules = await registry.list_modules()
+                
+                if not modules:
+                    print("No modules registered")
+                    return
+                
+                print(f"Found {len(modules)} modules:\n")
+                
+                for module in modules:
+                    status_emoji = {
+                        'active': '✅',
+                        'inactive': '⭕',
+                        'error': '❌'
+                    }
+                    
+                    emoji = status_emoji.get(module.status.value, '❓')
+                    print(f"{emoji} {module.name} v{module.version}")
+                    print(f"    Status: {module.status.value}")
+                    print(f"    Description: {module.description}")
+                    
+                    if capabilities and module.capabilities:
+                        print(f"    Capabilities:")
+                        for cap in module.capabilities:
+                            print(f"      - {cap.capability_type.value}: {cap.description}")
+                    print("")
+                
+            except Exception as e:
+                print(f"❌ Failed to list modules: {e}")
+                sys.exit(1)
+                
+        elif action == "register":
+            if not name or not module_capabilities:
+                print("❌ Module register requires --name and --capabilities arguments")
+                sys.exit(1)
+            
+            print(f"📝 Registering module...")
+            
+            try:
+                await self.initialize()
+                
+                # Import module registry
+                from memory_core.orchestrator.module_registry import ModuleRegistry, ModuleMetadata
+                
+                registry = ModuleRegistry()
+                
+                # Parse capabilities
+                caps = json.loads(module_capabilities)
+                
+                # Create module metadata
+                metadata = ModuleMetadata(
+                    name=name,
+                    capabilities=caps
+                )
+                
+                # Register module
+                module_id = await registry.register_module(metadata)
+                
+                print(f"✅ Module registered successfully")
+                print(f"   Module ID: {module_id}")
+                
+            except Exception as e:
+                print(f"❌ Failed to register module: {e}")
+                sys.exit(1)
+        else:
+            print(f"❌ Unknown modules action: {action}")
+            sys.exit(1)
+    
+    async def query_command(self, action: str, query_type: str = None, filter: str = None, fields: str = None):
+        """Handle GraphQL-like query builder commands."""
+        if action == "build":
+            print(f"🔍 Building query...")
+            
+            try:
+                await self.initialize()
+                
+                # Import query language
+                from memory_core.orchestrator.query_language import QueryBuilder, QueryType
+                
+                builder = QueryBuilder()
+                
+                # Set query type
+                if query_type:
+                    builder.query_type(QueryType[query_type.upper()])
+                
+                # Add filter if provided
+                if filter:
+                    # Parse filter string (simple format: "field operator value")
+                    parts = filter.split(' ', 2)
+                    if len(parts) == 3:
+                        field, operator, value = parts
+                        builder.filter(field, operator, value)
+                
+                # Add fields if provided
+                if fields:
+                    field_list = [f.strip() for f in fields.split(',')]
+                    builder.select(field_list)
+                
+                # Build and execute query
+                query = builder.build()
+                print(f"\nGenerated Query:")
+                print(json.dumps(query.dict(), indent=2))
+                
+                # Execute query
+                print(f"\n🔄 Executing query...")
+                results = await self.engine.execute_query(query)
+                
+                print(f"\n✅ Query completed. Found {len(results)} results")
+                
+                # Display results
+                for i, result in enumerate(results[:10]):  # Show first 10
+                    print(f"\nResult {i+1}:")
+                    print(json.dumps(result, indent=2))
+                
+                if len(results) > 10:
+                    print(f"\n... and {len(results) - 10} more results")
+                
+            except Exception as e:
+                print(f"❌ Failed to build/execute query: {e}")
+                sys.exit(1)
+        else:
+            print(f"❌ Unknown query action: {action}")
+            sys.exit(1)
 
 
 def parse_args():
@@ -809,6 +1092,61 @@ async def main():
                 key=key,
                 value=value,
                 section=args.get('section')
+            )
+        
+        elif command == "mcp":
+            if 'positional' not in args or len(args['positional']) == 0:
+                print("❌ MCP command requires action (stream-query)")
+                sys.exit(1)
+            
+            action = args['positional'][0]
+            await cli.mcp_command(
+                action=action,
+                query=args.get('query'),
+                batch_size=int(args.get('batch-size', 50)),
+                format=args.get('format', 'json')
+            )
+        
+        elif command == "events":
+            if 'positional' not in args or len(args['positional']) == 0:
+                print("❌ Events command requires action (list, publish)")
+                sys.exit(1)
+            
+            action = args['positional'][0]
+            await cli.events_command(
+                action=action,
+                status=args.get('status'),
+                limit=int(args.get('limit', 100)) if args.get('limit') else 100,
+                event_type=args.get('type'),
+                data=args.get('data'),
+                priority=args.get('priority', 'medium')
+            )
+        
+        elif command == "modules":
+            if 'positional' not in args or len(args['positional']) == 0:
+                print("❌ Modules command requires action (list, register)")
+                sys.exit(1)
+            
+            action = args['positional'][0]
+            await cli.modules_command(
+                action=action,
+                capabilities=args.get('capabilities', False),
+                status=args.get('status'),
+                name=args.get('name'),
+                module_capabilities=args.get('capabilities')
+            )
+        
+        elif command == "query":
+            if 'positional' not in args or len(args['positional']) == 0:
+                print("❌ Query command requires action (build)")
+                sys.exit(1)
+            
+            action = args['positional'][0]
+            await cli.query_command(
+                action=action,
+                query_type=args.get('type'),
+                filter=args.get('filter'),
+                fields=args.get('fields')
             )
         
         elif command == "version":

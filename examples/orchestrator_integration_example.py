@@ -54,7 +54,7 @@ from memory_core.orchestrator import (
 )
 
 # Import core Memory Engine components
-from memory_core.memory_engine import MemoryEngine
+from memory_core.core.knowledge_engine import KnowledgeEngine
 
 
 class ExampleModule(ModuleInterface):
