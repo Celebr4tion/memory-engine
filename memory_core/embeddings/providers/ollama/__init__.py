@@ -7,4 +7,4 @@ supporting various Ollama embedding models for fully local embedding generation.
 
 from .ollama_provider import OllamaEmbeddingProvider
 
-__all__ = ['OllamaEmbeddingProvider']
+__all__ = ["OllamaEmbeddingProvider"]

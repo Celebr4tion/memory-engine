@@ -9,8 +9,8 @@ from .interfaces.graph_storage_interface import GraphStorageInterface
 from .factory import create_storage, list_available_backends, is_backend_available
 
 __all__ = [
-    'GraphStorageInterface',
-    'create_storage', 
-    'list_available_backends', 
-    'is_backend_available'
+    "GraphStorageInterface",
+    "create_storage",
+    "list_available_backends",
+    "is_backend_available",
 ]

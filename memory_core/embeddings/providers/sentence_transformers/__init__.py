@@ -7,4 +7,4 @@ supporting various pre-trained models for semantic text embeddings.
 
 from .sentence_transformers_provider import SentenceTransformersProvider
 
-__all__ = ['SentenceTransformersProvider']
+__all__ = ["SentenceTransformersProvider"]

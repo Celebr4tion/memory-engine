@@ -8,4 +8,4 @@ requiring a balance between simplicity and performance.
 
 from .sqlite_storage import SqliteStorage
 
-__all__ = ['SqliteStorage']
+__all__ = ["SqliteStorage"]

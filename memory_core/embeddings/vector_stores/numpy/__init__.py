@@ -23,14 +23,14 @@ Usage:
         'auto_save': True,
         'max_memory_usage': 1000  # MB
     }
-    
+
     store = NumpyVectorStore(config)
     await store.connect()
-    
+
     # Add vectors
     vectors = [np.random.random(768) for _ in range(100)]
     ids = await store.add_vectors(vectors)
-    
+
     # Search
     query = np.random.random(768)
     results = await store.search_vectors(query, top_k=10)
@@ -38,4 +38,4 @@ Usage:
 
 from .numpy_store import NumpyVectorStore
 
-__all__ = ['NumpyVectorStore']
+__all__ = ["NumpyVectorStore"]

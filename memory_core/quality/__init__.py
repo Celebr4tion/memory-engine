@@ -13,10 +13,10 @@ from .contradiction_resolution import ContradictionResolver
 from .quality_enhancement_engine import KnowledgeQualityEnhancementEngine
 
 __all__ = [
-    'QualityAssessmentEngine',
-    'CrossValidationEngine',
-    'SourceReliabilityEngine',
-    'KnowledgeGapDetector',
-    'ContradictionResolver',
-    'KnowledgeQualityEnhancementEngine'
+    "QualityAssessmentEngine",
+    "CrossValidationEngine",
+    "SourceReliabilityEngine",
+    "KnowledgeGapDetector",
+    "ContradictionResolver",
+    "KnowledgeQualityEnhancementEngine",
 ]

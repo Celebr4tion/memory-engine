@@ -9,20 +9,20 @@ from .question_answering import QuestionAnsweringSystem
 from .insight_discovery import InsightDiscoveryEngine
 from .perspective_analysis import PerspectiveAnalysisEngine
 from .knowledge_synthesis_engine import (
-    KnowledgeSynthesisEngine, 
-    SynthesisRequest, 
-    SynthesisTaskType, 
+    KnowledgeSynthesisEngine,
+    SynthesisRequest,
+    SynthesisTaskType,
     SynthesisMode,
-    ComprehensiveSynthesisResult
+    ComprehensiveSynthesisResult,
 )
 
 __all__ = [
-    'QuestionAnsweringSystem',
-    'InsightDiscoveryEngine', 
-    'PerspectiveAnalysisEngine',
-    'KnowledgeSynthesisEngine',
-    'SynthesisRequest',
-    'SynthesisTaskType',
-    'SynthesisMode',
-    'ComprehensiveSynthesisResult'
+    "QuestionAnsweringSystem",
+    "InsightDiscoveryEngine",
+    "PerspectiveAnalysisEngine",
+    "KnowledgeSynthesisEngine",
+    "SynthesisRequest",
+    "SynthesisTaskType",
+    "SynthesisMode",
+    "ComprehensiveSynthesisResult",
 ]

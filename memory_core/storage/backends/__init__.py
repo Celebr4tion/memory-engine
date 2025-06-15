@@ -10,18 +10,21 @@ __all__ = []
 
 try:
     from .janusgraph import JanusGraphStorage, JanusGraphAdapter
-    __all__.extend(['JanusGraphStorage', 'JanusGraphAdapter'])
+
+    __all__.extend(["JanusGraphStorage", "JanusGraphAdapter"])
 except ImportError:
     pass
 
 try:
     from .json_file import JsonFileStorage
-    __all__.extend(['JsonFileStorage'])
+
+    __all__.extend(["JsonFileStorage"])
 except ImportError:
     pass
 
 try:
     from .sqlite import SqliteStorage
-    __all__.extend(['SqliteStorage'])
+
+    __all__.extend(["SqliteStorage"])
 except ImportError:
     pass

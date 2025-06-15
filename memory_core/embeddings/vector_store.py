@@ -4,6 +4,7 @@ Vector storage implementation using Milvus.
 This module provides an implementation of vector storage using Milvus,
 allowing for efficient storage and retrieval of embeddings.
 """
+
 import logging
 import time
 from typing import List, Dict, Any, Optional, Union
@@ -19,9 +20,11 @@ try:
         DataType,
         Collection,
     )
+
     MILVUS_AVAILABLE = True
 except ImportError:
     MILVUS_AVAILABLE = False
+
 
 class VectorStoreMilvus:
     """
@@ -29,11 +32,11 @@ class VectorStoreMilvus:
     """
 
     def __init__(
-        self, 
-        host: Optional[str] = None, 
+        self,
+        host: Optional[str] = None,
         port: Optional[Union[int, str]] = None,
-        collection_name: Optional[str] = None, 
-        dimension: Optional[int] = None
+        collection_name: Optional[str] = None,
+        dimension: Optional[int] = None,
     ):
         """
         Initialize the Milvus vector store.
@@ -47,20 +50,22 @@ class VectorStoreMilvus:
         self.config = get_config()
         self.host = host or self.config.config.vector_store.milvus.host
         self.port = port or self.config.config.vector_store.milvus.port
-        self.collection_name = collection_name or self.config.config.vector_store.milvus.collection_name
+        self.collection_name = (
+            collection_name or self.config.config.vector_store.milvus.collection_name
+        )
         self.dimension = dimension or self.config.config.vector_store.milvus.dimension
         self.logger = logging.getLogger(__name__)
         self.connected = False
         self.index_params = {
             "metric_type": self.config.config.vector_store.milvus.metric_type,
             "index_type": self.config.config.vector_store.milvus.index_type,
-            "params": {"nlist": self.config.config.vector_store.milvus.nlist}
+            "params": {"nlist": self.config.config.vector_store.milvus.nlist},
         }
 
     def connect(self, max_retries: int = 5, retry_interval: int = 10) -> bool:
         """
         Connect to Milvus server and ensure the collection exists.
-        
+
         Includes retry logic to handle cases where Milvus is still initializing.
 
         Args:
@@ -73,43 +78,49 @@ class VectorStoreMilvus:
         for attempt in range(1, max_retries + 1):
             try:
                 # Connect to Milvus server
-                self.logger.info(f"Attempt {attempt}/{max_retries}: Connecting to Milvus at {self.host}:{self.port}")
+                self.logger.info(
+                    f"Attempt {attempt}/{max_retries}: Connecting to Milvus at {self.host}:{self.port}"
+                )
                 connect_args = {"host": self.host, "port": self.port, "timeout": 10}
-                
+
                 # Add authentication if configured
                 if self.config.config.vector_store.milvus.user:
                     connect_args["user"] = self.config.config.vector_store.milvus.user
                 if self.config.config.vector_store.milvus.password:
                     connect_args["password"] = self.config.config.vector_store.milvus.password
-                
+
                 connections.connect("default", **connect_args)
                 self.logger.info(f"Connected to Milvus server at {self.host}:{self.port}")
-                
+
                 # Create collection if it doesn't exist
                 self._ensure_collection()
                 self.connected = True
                 return True
-                
+
             except Exception as e:
                 self.logger.warning(f"Connection attempt {attempt} failed: {str(e)}")
-                
+
                 # Special handling for "not ready yet" errors
                 if "Milvus Proxy is not ready yet" in str(e) and attempt < max_retries:
-                    self.logger.info(f"Milvus is still initializing. Waiting {retry_interval} seconds before retry...")
+                    self.logger.info(
+                        f"Milvus is still initializing. Waiting {retry_interval} seconds before retry..."
+                    )
                 elif attempt < max_retries:
                     self.logger.info(f"Retrying in {retry_interval} seconds...")
                 else:
-                    self.logger.error(f"Failed to connect to Milvus after {max_retries} attempts: {str(e)}")
+                    self.logger.error(
+                        f"Failed to connect to Milvus after {max_retries} attempts: {str(e)}"
+                    )
                     return False
-                
+
                 # Ensure we're disconnected before retrying
                 try:
                     connections.disconnect("default")
                 except:
                     pass
-                    
+
                 time.sleep(retry_interval)
-        
+
         return False
 
     def disconnect(self) -> None:
@@ -121,7 +132,7 @@ class VectorStoreMilvus:
                     self.collection.release()
                 except Exception as e:
                     self.logger.warning(f"Error releasing collection: {str(e)}")
-            
+
             # Disconnect from server
             connections.disconnect("default")
             self.logger.info("Disconnected from Milvus server")
@@ -137,7 +148,7 @@ class VectorStoreMilvus:
         else:
             self._create_collection()
             self.logger.info(f"Created new collection: {self.collection_name}")
-        
+
         # Load collection
         self.collection.load()
 
@@ -147,18 +158,18 @@ class VectorStoreMilvus:
         fields = [
             FieldSchema(name="node_id", dtype=DataType.VARCHAR, is_primary=True, max_length=100),
             FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=self.dimension),
-            FieldSchema(name="timestamp", dtype=DataType.DOUBLE)
+            FieldSchema(name="timestamp", dtype=DataType.DOUBLE),
         ]
-        
+
         # Create schema and collection
         schema = CollectionSchema(fields=fields, description="Knowledge node embeddings")
         self.collection = Collection(name=self.collection_name, schema=schema)
-        
+
         # Create index and flush collection
         self.logger.info(f"Creating index for collection {self.collection_name}...")
         self.collection.create_index(field_name="embedding", index_params=self.index_params)
         self.collection.flush()
-        
+
         # Verify index exists
         index_info = self.collection.index()
         self.logger.info(f"Created index: {index_info}")
@@ -175,28 +186,23 @@ class VectorStoreMilvus:
             raise ValueError(
                 f"Embedding dimension mismatch. Expected {self.dimension}, got {len(embedding)}"
             )
-        
+
         if not self.collection:
             raise RuntimeError("Not connected to Milvus. Call connect() first.")
-        
+
         # Check if node_id already exists
         query_result = self.collection.query(
-            expr=f'node_id == "{node_id}"',
-            output_fields=["node_id"]
+            expr=f'node_id == "{node_id}"', output_fields=["node_id"]
         )
-        
+
         # If node_id exists, delete it first
         if query_result:
             expr = f'node_id in ["{node_id}"]'
             self.collection.delete(expr)
-        
+
         # Insert new embedding
-        data = [
-            [node_id],  # node_id
-            [embedding],  # embedding vector
-            [time.time()]  # timestamp
-        ]
-        
+        data = [[node_id], [embedding], [time.time()]]  # node_id  # embedding vector  # timestamp
+
         self.collection.insert(data)
         self.collection.flush()
         self.logger.info(f"Added embedding for node {node_id}")
@@ -216,26 +222,23 @@ class VectorStoreMilvus:
             raise ValueError(
                 f"Query vector dimension mismatch. Expected {self.dimension}, got {len(query_vector)}"
             )
-        
+
         if not self.collection:
             raise RuntimeError("Not connected to Milvus. Call connect() first.")
-        
+
         results = self.collection.search(
             data=[query_vector],
             anns_field="embedding",
             param=self.index_params,
             limit=top_k,
-            output_fields=["node_id"]
+            output_fields=["node_id"],
         )
-        
+
         matches = []
         if results and results[0]:
             for hit in results[0]:
-                matches.append({
-                    "node_id": hit.entity.get("node_id"),
-                    "score": hit.score
-                })
-        
+                matches.append({"node_id": hit.entity.get("node_id"), "score": hit.score})
+
         return matches
 
     def get_node_ids(self, query_vector: List[float], top_k: int = 5) -> List[str]:
@@ -264,7 +267,7 @@ class VectorStoreMilvus:
         """
         if not self.collection:
             raise RuntimeError("Not connected to Milvus. Call connect() first.")
-        
+
         # Use Milvus compatible delete expression
         expr = f'node_id in ["{node_id}"]'
         result = self.collection.delete(expr)

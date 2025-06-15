@@ -7,4 +7,4 @@ must implement to ensure consistent behavior across different backends.
 
 from .graph_storage_interface import GraphStorageInterface
 
-__all__ = ['GraphStorageInterface']
+__all__ = ["GraphStorageInterface"]

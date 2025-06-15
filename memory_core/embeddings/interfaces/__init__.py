@@ -8,14 +8,14 @@ from .embedding_provider_interface import (
     EmbeddingError,
     EmbeddingProviderError,
     EmbeddingConfigError,
-    EmbeddingDimensionMismatchError
+    EmbeddingDimensionMismatchError,
 )
 
 __all__ = [
-    'EmbeddingProviderInterface',
-    'TaskType',
-    'EmbeddingError',
-    'EmbeddingProviderError',
-    'EmbeddingConfigError',
-    'EmbeddingDimensionMismatchError'
+    "EmbeddingProviderInterface",
+    "TaskType",
+    "EmbeddingError",
+    "EmbeddingProviderError",
+    "EmbeddingConfigError",
+    "EmbeddingDimensionMismatchError",
 ]

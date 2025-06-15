@@ -14,17 +14,17 @@ from .async_queue_processor import (
     EmbeddingGenerationProcessor,
     KnowledgeExtractionProcessor,
     RelationshipExtractionProcessor,
-    create_knowledge_processing_queue
+    create_knowledge_processing_queue,
 )
 
 __all__ = [
-    'AsyncProcessingQueue',
-    'TaskProcessor', 
-    'QueueTask',
-    'TaskStatus',
-    'TaskPriority',
-    'EmbeddingGenerationProcessor',
-    'KnowledgeExtractionProcessor', 
-    'RelationshipExtractionProcessor',
-    'create_knowledge_processing_queue'
+    "AsyncProcessingQueue",
+    "TaskProcessor",
+    "QueueTask",
+    "TaskStatus",
+    "TaskPriority",
+    "EmbeddingGenerationProcessor",
+    "KnowledgeExtractionProcessor",
+    "RelationshipExtractionProcessor",
+    "create_knowledge_processing_queue",
 ]

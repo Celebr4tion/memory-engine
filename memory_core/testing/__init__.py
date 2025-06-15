@@ -10,13 +10,13 @@ from .performance_regression_tests import (
     PerformanceBenchmark,
     BenchmarkResult,
     RegressionReport,
-    CommonBenchmarks
+    CommonBenchmarks,
 )
 
 __all__ = [
-    'PerformanceRegressionTester',
-    'PerformanceBenchmark',
-    'BenchmarkResult',
-    'RegressionReport',
-    'CommonBenchmarks'
+    "PerformanceRegressionTester",
+    "PerformanceBenchmark",
+    "BenchmarkResult",
+    "RegressionReport",
+    "CommonBenchmarks",
 ]

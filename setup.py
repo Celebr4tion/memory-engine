@@ -19,7 +19,7 @@ except FileNotFoundError:
 
 setup(
     name="memory-engine",
-    version="0.4.0",
+    version="0.5.0",
     author="Janek Wenning",
     author_email="noreply@github.com",
     description="A comprehensive knowledge graph and memory management system with modular storage backends",

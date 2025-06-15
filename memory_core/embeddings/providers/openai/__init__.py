@@ -7,4 +7,4 @@ text-embedding-3-small and text-embedding-3-large.
 
 from .openai_provider import OpenAIEmbeddingProvider
 
-__all__ = ['OpenAIEmbeddingProvider']
+__all__ = ["OpenAIEmbeddingProvider"]
