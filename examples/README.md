@@ -44,7 +44,7 @@ Demonstrates:
 **Run**: `python examples/mcp_client_example.py`
 
 ### 🗄️ [storage_backends_example.py](storage_backends_example.py)
-**Modular storage backend usage (New in v0.2.0)**
+**Modular storage backend usage (Added in v0.2.0)**
 
 Demonstrates:
 - Using different storage backends (JanusGraph, SQLite, JSON file)
@@ -56,13 +56,49 @@ Demonstrates:
 
 **Run**: `python examples/storage_backends_example.py`
 
+### 🤖 [anthropic_llm_example.py](anthropic_llm_example.py)
+**Anthropic Claude LLM provider usage (New in v0.3.0)**
+
+Demonstrates:
+- Using Claude models for knowledge extraction
+- Streaming completions and chat functionality
+- Structured output with JSON mode
+- Error handling and provider health checks
+
+**Run**: `python examples/anthropic_llm_example.py`
+
+### 🌐 [openai_llm_example.py](openai_llm_example.py)
+**OpenAI GPT provider usage (New in v0.3.0)**
+
+Demonstrates:
+- Using GPT models for knowledge tasks
+- JSON mode for structured responses
+- Rate limit handling and retries
+- Provider configuration and management
+
+**Run**: `python examples/openai_llm_example.py`
+
+### 🏠 [ollama_llm_example.py](ollama_llm_example.py)
+**Local Ollama LLM provider usage (New in v0.3.0)**
+
+Demonstrates:
+- Running knowledge extraction completely offline
+- Local model management and configuration
+- Performance optimization for local inference
+- Fallback strategies and error handling
+
+**Run**: `python examples/ollama_llm_example.py`
+
 ## Prerequisites
 
 Before running the examples:
 
-1. **Set up environment**:
+1. **Set up environment** (at least one API key required):
    ```bash
-   export GEMINI_API_KEY="your-api-key-here"
+   export GOOGLE_API_KEY="your-gemini-api-key"        # For Gemini
+   export OPENAI_API_KEY="your-openai-api-key"        # For OpenAI GPT  
+   export ANTHROPIC_API_KEY="your-anthropic-api-key"  # For Claude
+   # Or use local models (Ollama/HuggingFace) - no API key needed
    ```
 
 2. **Start infrastructure** (for JanusGraph/Milvus backends):

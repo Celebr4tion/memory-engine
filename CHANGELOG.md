@@ -7,6 +7,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-06-15
+
+### Added - LLM Independence & Local Operation
+- **LLM Provider Interface**: Abstract interface for modular LLM integration
+- **Multiple LLM Providers**: Support for 5 different LLM providers
+  - **Gemini**: Google's LLM API (existing, updated to interface)
+  - **OpenAI**: GPT models with JSON mode support  
+  - **Anthropic**: Claude models with streaming capabilities
+  - **Ollama**: Local model inference for offline operation
+  - **HuggingFace**: Both local transformers and API modes
+- **LLM Factory System**: Dynamic provider instantiation with fallback support
+- **LLM Manager**: Comprehensive orchestration with circuit breaker pattern
+- **Fallback Chains**: Automatic provider switching on failure for resilience
+- **Health Monitoring**: Real-time provider status and performance tracking
+- **Local Operation Support**: Complete offline LLM capabilities via Ollama and HuggingFace
+- **Circuit Breaker Pattern**: Prevents cascading failures across LLM providers
+- **Performance Metrics**: Response time and error rate monitoring for all providers
+
+### Changed
+- **Knowledge Extraction**: Now supports multiple LLM providers instead of Gemini-only
+- **Configuration System**: Extended with comprehensive LLM provider configurations
+- **Error Handling**: Enhanced with provider-specific exception hierarchy
+- **Dependency Management**: Graceful handling of optional LLM provider dependencies
+
+### Technical Improvements
+- **Provider Abstraction**: All LLM providers implement unified interface
+- **Graceful Degradation**: System remains functional when specific providers fail
+- **API Key Management**: Secure environment variable-based configuration
+- **Comprehensive Logging**: Detailed operation tracking across all providers
+- **Task Support**: All providers support full spectrum of LLM tasks
+- **Testing Coverage**: Unit tests for all LLM providers and integration scenarios
+
+### Breaking Changes
+- LLM configuration structure updated to support multiple providers
+- Environment variables renamed for consistency (backwards compatibility maintained)
+
+### Migration Guide
+- Update `config.yaml` to include new LLM provider configurations
+- Set additional API keys as needed: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `HUGGINGFACE_API_KEY`
+- Review LLM provider selection in configuration files
+
+## [0.2.1] - 2025-06-13
+
+### Added - Modular Embedding System  
+- **Embedding Provider Interface**: Abstract interface for embedding generation
+- **Vector Store Interface**: Abstract interface for vector storage and retrieval
+- **Provider Factory System**: Dynamic instantiation of embedding providers
+- **Vector Store Factory System**: Dynamic instantiation of vector store backends
+- **Modular Embedding Manager**: Unified interface supporting all providers and stores
+
+#### Supported Embedding Providers
+- **Gemini**: Google Gemini embedding models
+- **OpenAI**: OpenAI text-embedding models  
+- **Sentence Transformers**: Local Hugging Face models
+- **Ollama**: Local Ollama embedding models
+
+#### Supported Vector Stores
+- **Milvus**: High-performance distributed vector database (existing, updated)
+- **ChromaDB**: Lightweight embedded vector database
+- **NumPy**: In-memory vector storage for testing
+
+### Changed
+- **Embedding System**: Refactored from Milvus-only to multi-provider architecture
+- **Configuration**: Extended with modular embedding and vector store configurations
+- **Storage Architecture**: Moved from hardcoded Milvus to pluggable vector store system
+
+### Technical Improvements
+- **Interface Compliance**: All embedding providers and vector stores implement unified interfaces
+- **Performance Optimizations**: Provider-specific optimizations and caching strategies
+- **Testing Coverage**: Comprehensive test suite for all embedding providers and vector stores
+- **Graceful Degradation**: System handles missing dependencies gracefully
+
+### Developer Experience
+- **Provider Selection**: Choose embedding providers and vector stores based on deployment needs
+- **Local Development**: Lightweight options for development and testing
+- **Production Deployment**: High-performance options for production systems
+
 ## [0.2.0] - 2025-06-11
 
 ### Added
@@ -215,6 +292,8 @@ This project builds upon excellent open source technologies:
 
 | Version | Release Date | Description |
 |---------|--------------|-------------|
+| 0.3.0   | 2025-06-15   | LLM independence and local operation support |
+| 0.2.1   | 2025-06-13   | Modular embedding system with multiple providers |
 | 0.2.0   | 2025-06-11   | Modular storage backends and configuration system |
 | 0.1.0   | 2025-06-09   | Initial alpha release - experimental |
 
